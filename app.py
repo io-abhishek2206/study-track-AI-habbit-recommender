@@ -6,6 +6,41 @@ from data_cleaner import clean_and_standardize_excel
 from model import train_regression_model, predict_student_score
 from kmeans_clustering import train_kmeans_clustering, save_clustered_excel
 
+def login_page():
+    st.markdown(
+        """
+        <div style="
+            background:#1e1e1e;
+            padding:30px;
+            border-radius:15px;
+            max-width:400px;
+            margin:auto;
+            box-shadow:0 0 20px #7b2cbf55;
+        ">
+            <h2 style="text-align:center;color:#bb86fc;">🔐 StudyTrack AI Login</h2>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+
+    if st.button("Login"):
+        if username == "admin" and password == "admin123":
+            st.session_state.logged_in = True
+            st.success("Login successful!")
+            st.rerun()
+        else:
+            st.error("Invalid credentials")
+
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+if not st.session_state.logged_in:
+    login_page()
+    st.stop()
+
 st.set_page_config(
     page_title="StudyTrack AI",
     layout="wide",
