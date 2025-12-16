@@ -71,7 +71,7 @@ st.markdown(
 
     /* Title styling */
     h1 {
-        text-align: center;
+        text-align: left;
         font-weight: 700 !important;
         font-size: 42px !important;
         color: #9d4efc !important;
@@ -168,15 +168,77 @@ st.markdown(
     ::-webkit-scrollbar-thumb:hover {
         background: #9d4edd;
     }
-    section[data-testid="stSidebar"] {
-    background-color: #111 !important;
-    border-right: 1px solid #333;
-}
+    /* ================= SIDEBAR STYLING ================= */
 
-    section[data-testid="stSidebar"] h1,
-    section[data-testid="stSidebar"] h2,
+    /* Sidebar main container */
+    section[data-testid="stSidebar"] {
+        padding-top: 0rem !important;
+        background: linear-gradient(180deg, #0f0f1a, #090909);
+    }
+
+    /* Sidebar inner content */
+    section[data-testid="stSidebar"] > div {
+        padding-top: 0rem !important;
+    }
+
+    /* Sidebar title / header */
+    section[data-testid="stSidebar"] h1 {
+        margin-top: 0rem !important;
+        padding-top: 0rem;
+        padding-bottom: 0rem;
+        text-align: center;
+        font-size: 42px !important;
+        font-weight: 700;
+        color: #9d4efc !important;
+        text-shadow: 0 0 3px #bb86fc66;
+    }
+
+    /* Sidebar labels (radio text etc.) */
     section[data-testid="stSidebar"] label {
-        color: #bb86fc !important;
+        font-size: 15px !important;
+        font-weight: 600;
+        color: #e0e0e0 !important;
+    }
+
+    /* Radio group spacing */
+    section[data-testid="stSidebar"] .stRadio > div {
+        gap: 0.4rem;
+    }
+
+    /* Individual radio option cards */
+    section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label {
+        background: #141414;
+        height: 48px;                      
+        display: flex;                    
+        align-items: center;
+        padding: 0 16px;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        transition: all 0.25s ease;
+        border: 1px solid #262626;
+        box-sizing: border-box;
+    }
+
+    /* Hover animation */
+    section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label:hover {
+        background: #1f1f1f;
+        transform: translateX(6px);
+        box-shadow: inset 4px 0 0 #bb86fc;
+    }
+
+    /* Selected radio option */
+    section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label:has(input:checked) {
+        background: linear-gradient(135deg, #7b2cbf, #560bad);
+        color: white !important;
+        box-shadow: 0 0 14px #7b2cbf99;
+    }
+
+    section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label span {
+    flex-grow: 1;
+    }
+    /* Hide Streamlit footer */
+    footer {
+        visibility: hidden;
     }
 
     </style>
@@ -186,7 +248,7 @@ st.markdown(
 st.sidebar.title("Navigation")
 
 selected_tab = st.sidebar.radio(
-    "Go to",
+    "",
     ["Data Analysis", "Regression Visualization", "Predict New Student"]
 )
 st.title("StudyTrack AI Habbit Recommender")
@@ -197,7 +259,7 @@ uploaded_file = st.file_uploader(
     type=["xlsx", "csv"]
 )
 if uploaded_file is None:
-    st.info("Please upload an Excel file to get started.")
+    st.info("Please upload an Excel or CSV file to get started.")
     st.stop()
 
 st.subheader("Step 1: Clean & Standardize Data")
