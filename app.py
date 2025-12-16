@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 import matplotlib.pyplot as plt
 
 from data_cleaner import clean_and_standardize_excel
@@ -17,7 +18,7 @@ def login_page():
             margin:auto;
             box-shadow:0 0 20px #7b2cbf55;
         ">
-            <h2 style="text-align:center;color:#bb86fc;">🔐 StudyTrack AI Login</h2>
+            <h2 style="text-align:center;color:#bb86fc;">StudyTrack AI Login</h2>
         </div>
         """,
         unsafe_allow_html=True
@@ -186,13 +187,15 @@ st.sidebar.title("Navigation")
 
 selected_tab = st.sidebar.radio(
     "Go to",
-    ["Data & Clusters", "Regression Visualization", "Predict New Student"]
+    ["Data Analysis", "Regression Visualization", "Predict New Student"]
 )
 st.title("StudyTrack AI Habbit Recommender")
 st.write("Upload a student dataset -> Clean it -> Train models -> Cluster students -> Predict marks for a new student")
 
-uploaded_file = st.file_uploader("Upload Excel file", type=["xlsx"])
-
+uploaded_file = st.file_uploader(
+    "Upload CSV or Excel file",
+    type=["xlsx", "csv"]
+)
 if uploaded_file is None:
     st.info("Please upload an Excel file to get started.")
     st.stop()
@@ -239,7 +242,7 @@ with metric_col2:
     st.metric("R2 Score", f"{r2:.3f}")
 
 st.markdown("---")
-if selected_tab == "Data & Clusters":
+if selected_tab == "Data Analysis":
     st.markdown("### Clustered Student Data")
 
     show_cols = [
@@ -251,23 +254,29 @@ if selected_tab == "Data & Clusters":
 
     st.markdown("#### Cluster Distribution")
     cluster_counts = clustered_df["Cluster_Number"].value_counts().sort_index()
-    st.bar_chart(cluster_counts)
-
-    st.markdown("#### Study Hours vs Marks")
-    fig2, ax2 = plt.subplots(figsize=(6, 4))
-    scatter = ax2.scatter(
-        clustered_df["StudyHours"],
-        clustered_df["Marks"],
-        c=clustered_df["Cluster_Number"],
-        cmap="plasma"
+    fig_bar = px.bar(
+        x=cluster_counts.index,
+        y=cluster_counts.values,
+        labels={"x": "Cluster", "y": "Number of Students"},
+        title="Cluster Distribution",
+        template="plotly_dark"
     )
-    ax2.set_xlabel("Study Hours")
-    ax2.set_ylabel("Marks")
-    ax2.set_title("K-Means Clusters: Study Hours vs Marks")
-    ax2.grid(True)
-    handles, labels = scatter.legend_elements(prop="colors", alpha=0.7)
-    ax2.legend(handles, [f"Cluster {i}" for i in range(3)], title="Clusters")
-    st.pyplot(fig2)
+    st.plotly_chart(fig_bar, use_container_width=True)
+    st.markdown("#### Study Hours vs Marks")
+    fig_cluster = px.scatter(
+    clustered_df,
+    x="StudyHours",
+    y="Marks",
+    color="Cluster_Number",
+    title="K-Means Clusters: Study Hours vs Marks",
+    color_continuous_scale="Plasma",
+    template="plotly_dark"
+)
+    fig_cluster.update_layout(
+        xaxis_title="Study Hours",
+        yaxis_title="Marks"
+    )
+    st.plotly_chart(fig_cluster, use_container_width=True)
 
     # Download clustered remarks file
     with open("student_remarks.xlsx", "rb") as f:
@@ -281,18 +290,29 @@ if selected_tab == "Data & Clusters":
 elif selected_tab == "Regression Visualization":
     st.markdown("### Actual vs Predicted Marks")
 
-    fig1, ax1 = plt.subplots(figsize=(6, 4))
-    ax1.scatter(y_test, y_pred, alpha=0.7)
-    ax1.plot(
-        [y_test.min(), y_test.max()],
-        [y_test.min(), y_test.max()],
-        linestyle="--"
+    reg_df = pd.DataFrame({
+        "Actual Marks": y_test,
+        "Predicted Marks": y_pred
+    })
+
+    fig_reg = px.scatter(
+        reg_df,
+        x="Actual Marks",
+        y="Predicted Marks",
+        title="Actual vs Predicted Marks",
+        template="plotly_dark"
     )
-    ax1.set_xlabel("Actual Marks")
-    ax1.set_ylabel("Predicted Marks")
-    ax1.set_title("Actual vs Predicted Marks (Regression Line)")
-    ax1.grid(True)
-    st.pyplot(fig1)
+
+    fig_reg.add_shape(
+        type="line",
+        x0=reg_df["Actual Marks"].min(),
+        y0=reg_df["Actual Marks"].min(),
+        x1=reg_df["Actual Marks"].max(),
+        y1=reg_df["Actual Marks"].max(),
+        line=dict(color="cyan", dash="dash")
+    )
+
+    st.plotly_chart(fig_reg, use_container_width=True)
 
     st.markdown("#### Sample of Test Data with Predictions")
     reg_view = pd.DataFrame({

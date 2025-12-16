@@ -43,7 +43,12 @@ def auto_detect_columns(df):
 def clean_and_standardize_excel(uploaded_file, output_filename="clean_student_data.xlsx"):
     import pandas as pd
 
-    df_raw = pd.read_excel(uploaded_file)
+    file_name = uploaded_file.name.lower()
+
+    if file_name.endswith(".csv"):
+        df_raw = pd.read_csv(uploaded_file)
+    else:
+        df_raw = pd.read_excel(uploaded_file)
 
     # drop completely empty columns
     df_raw = df_raw.dropna(axis=1, how="all")
