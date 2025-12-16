@@ -74,7 +74,7 @@ st.markdown(
         font-weight: 700 !important;
         font-size: 42px !important;
         color: #9d4efc !important;
-        text-shadow: 0 0 10px #9d4efc55;
+        text-shadow: 0 0 5px #9d4efc55;
         padding-bottom: 10px;
     }
 
@@ -167,10 +167,26 @@ st.markdown(
     ::-webkit-scrollbar-thumb:hover {
         background: #9d4edd;
     }
+    section[data-testid="stSidebar"] {
+    background-color: #111 !important;
+    border-right: 1px solid #333;
+}
+
+    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] label {
+        color: #bb86fc !important;
+    }
 
     </style>
     """,
     unsafe_allow_html=True
+)
+st.sidebar.title("Navigation")
+
+selected_tab = st.sidebar.radio(
+    "Go to",
+    ["Data & Clusters", "Regression Visualization", "Predict New Student"]
 )
 st.title("StudyTrack AI Habbit Recommender")
 st.write("Upload a student dataset -> Clean it -> Train models -> Cluster students -> Predict marks for a new student")
@@ -223,9 +239,7 @@ with metric_col2:
     st.metric("R2 Score", f"{r2:.3f}")
 
 st.markdown("---")
-
-tab1, tab2, tab3 = st.tabs(["Data & Clusters", "Regression Visualization", "Predict New Student"])
-with tab1:
+if selected_tab == "Data & Clusters":
     st.markdown("### Clustered Student Data")
 
     show_cols = [
@@ -264,7 +278,7 @@ with tab1:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             key="download_clusters",
         )
-with tab2:
+elif selected_tab == "Regression Visualization":
     st.markdown("### Actual vs Predicted Marks")
 
     fig1, ax1 = plt.subplots(figsize=(6, 4))
@@ -287,7 +301,7 @@ with tab2:
     }).head(20)
     st.dataframe(reg_view)
 
-with tab3:
+elif selected_tab == "Predict New Student":
     st.markdown("### Predict Marks & Performance for a New Student")
 
     c1, c2, c3, c4 = st.columns(4)
@@ -332,4 +346,3 @@ with tab3:
 
         st.success(f"🎯 Predicted Marks: **{predicted_marks:.2f}**")
         st.info(f"Cluster: **{new_cluster}** | Remark: **{new_remark}**")
-
