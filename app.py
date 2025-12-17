@@ -52,196 +52,107 @@ st.markdown(
     """
     <style>
 
-    /* Global dark background */
-    body {
-        background: #0d0d0d;
-        color: #e0e0e0;
-        font-family: 'Segoe UI', sans-serif;
-    }
+/* ================= GLOBAL DARK THEME ================= */
 
-    /* Main content container */
-    .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-        border-radius: 12px;
-        background-color: rgba(20, 20, 20, 0.85);
-        box-shadow: 0 4px 25px rgba(0,0,0,0.5);
-        backdrop-filter: blur(8px);
-    }
+body {
+    background: #0d0d0d;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', sans-serif;
+}
 
-    /* Title styling */
-    h1 {
-        text-align: left;
-        font-weight: 700 !important;
-        font-size: 42px !important;
-        color: #9d4efc !important;
-        text-shadow: 0 0 5px #9d4efc55;
-        padding-bottom: 10px;
-    }
+.block-container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    border-radius: 12px;
+    background-color: rgba(20, 20, 20, 0.85);
+    box-shadow: 0 4px 25px rgba(0,0,0,0.5);
+    backdrop-filter: blur(8px);
+}
 
-    /* Subheaders */
-    h2, h3, h4 {
-        color: #bb86fc !important;
-        font-weight: 600 !important;
-        text-shadow: 0 0 6px #bb86fc33;
-    }
+h1 {
+    text-align: left;
+    font-weight: 700 !important;
+    font-size: 42px !important;
+    color: #9d4efc !important;
+    text-shadow: 0 0 5px #9d4efc55;
+}
 
-    /* Tabs container */
-    .stTabs [data-baseweb="tab-list"] {
-        background-color: #1a1a1a;
-        padding: 8px;
-        border-radius: 10px;
-    }
+h2, h3, h4 {
+    color: #bb86fc !important;
+    font-weight: 600 !important;
+}
 
-    /* Tabs */
-    .stTabs [data-baseweb="tab"] {
-        background-color: #111;
-        padding: 10px 16px;
-        margin-right: 8px;
-        border-radius: 10px;
-        font-weight: 600;
-        color: #d0d0d0;
-    }
+/* ================= SIDEBAR ================= */
 
-    /* Active tab */
-    .stTabs [aria-selected="true"] {
-        background-color: #6a1fbf !important;
-        color: white !important;
-        font-weight: 700;
-        border-bottom: 3px solid #bb86fc !important;
-        text-shadow: 0 0 6px #bb86fcaa;
-    }
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #0f0f1a, #090909);
+    padding-top: 0 !important;
+}
 
-    /* Buttons */
-    .stButton>button {
-        background: linear-gradient(135deg, #7b2cbf, #560bad);
-        color: white;
-        border-radius: 10px;
-        padding: 10px 20px;
-        border: none;
-        font-size: 16px;
-        font-weight: 600;
-        transition: 0.3s ease;
-        box-shadow: 0 0 10px #7b2cbf55;
-    }
+section[data-testid="stSidebar"] > div {
+    padding-top: 0 !important;
+}
 
-    /* Hover effect */
-    .stButton>button:hover {
-        transform: scale(1.06);
-        background: linear-gradient(135deg, #9d4edd, #7b2cbf);
-        box-shadow: 0 0 14px #9d4edd99;
-    }
+/* Sidebar title */
+section[data-testid="stSidebar"] h1 {
+    text-align: left;
+    font-size: 42px !important;
+    color: #9d4efc !important;
+    margin-bottom: 20px;
+}
 
-    /* Metrics cards */
-    .stMetric {
-        background: #1e1e1e;
-        padding: 15px;
-        border-radius: 12px;
-        box-shadow: 0 0 10px #7b2cbf55;
-        color: #e0e0e0 !important;
-    }
+/* Hide default radio circle completely */
+section[data-testid="stSidebar"] input[type="radio"] {
+    display: none;
+}
 
-    /* Dataframe styling */
-    .dataframe {
-        border-radius: 10px;
-        border: 1px solid #333;
-        color: #e0e0e0 !important;
-    }
+/* Radio group container */
+section[data-testid="stSidebar"] .stRadio > div {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
 
-    table td, table th {
-        color: #ddd !important;
-        background-color: #111 !important;
-    }
+/* === RADIO BOX (FIXED SIZE) === */
+section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label {
+    width: 100%;                 /* 🔒 same width */
+    height: 52px;                /* 🔒 same height */
+    display: flex;               /* flex lock */
+    align-items: center;         /* vertical center */
+    justify-content: flex-start; /* left text */
+    padding: 0 18px;
+    background: #141414;
+    border-radius: 14px;
+    border: 1px solid #262626;
+    box-sizing: border-box;
+    font-size: 15px;
+    font-weight: 600;
+    color: #e0e0e0;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
 
-    /* Scrollbars */
-    ::-webkit-scrollbar {
-        width: 10px;
-        height: 10px;
-    }
-    ::-webkit-scrollbar-track {
-        background: #1a1a1a;
-    }
-    ::-webkit-scrollbar-thumb {
-        background: #7b2cbf;
-        border-radius: 10px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-        background: #9d4edd;
-    }
-    /* ================= SIDEBAR STYLING ================= */
+/* Hover */
+section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label:hover {
+    background: #1f1f1f;
+    transform: translateX(6px);
+    box-shadow: inset 4px 0 0 #bb86fc;
+}
 
-    /* Sidebar main container */
-    section[data-testid="stSidebar"] {
-        padding-top: 0rem !important;
-        background: linear-gradient(180deg, #0f0f1a, #090909);
-    }
+/* Selected (NO :has — Streamlit-safe) */
+section[data-testid="stSidebar"] 
+.stRadio div[role="radiogroup"] > label[data-checked="true"] {
+    background: linear-gradient(135deg, #7b2cbf, #560bad);
+    color: white !important;
+    box-shadow: 0 0 14px #7b2cbf99;
+}
 
-    /* Sidebar inner content */
-    section[data-testid="stSidebar"] > div {
-        padding-top: 0rem !important;
-    }
+/* Hide footer */
+footer {
+    visibility: hidden;
+}
 
-    /* Sidebar title / header */
-    section[data-testid="stSidebar"] h1 {
-        margin-top: 0rem !important;
-        padding-top: 0rem;
-        padding-bottom: 0rem;
-        text-align: center;
-        font-size: 42px !important;
-        font-weight: 700;
-        color: #9d4efc !important;
-        text-shadow: 0 0 3px #bb86fc66;
-    }
-
-    /* Sidebar labels (radio text etc.) */
-    section[data-testid="stSidebar"] label {
-        font-size: 15px !important;
-        font-weight: 600;
-        color: #e0e0e0 !important;
-    }
-
-    /* Radio group spacing */
-    section[data-testid="stSidebar"] .stRadio > div {
-        gap: 0.4rem;
-    }
-
-    /* Individual radio option cards */
-    section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label {
-        background: #141414;
-        height: 48px;                      
-        display: flex;                    
-        align-items: center;
-        padding: 0 16px;
-        border-radius: 12px;
-        margin-bottom: 8px;
-        transition: all 0.25s ease;
-        border: 1px solid #262626;
-        box-sizing: border-box;
-    }
-
-    /* Hover animation */
-    section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label:hover {
-        background: #1f1f1f;
-        transform: translateX(6px);
-        box-shadow: inset 4px 0 0 #bb86fc;
-    }
-
-    /* Selected radio option */
-    section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label:has(input:checked) {
-        background: linear-gradient(135deg, #7b2cbf, #560bad);
-        color: white !important;
-        box-shadow: 0 0 14px #7b2cbf99;
-    }
-
-    section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label span {
-    flex-grow: 1;
-    }
-    /* Hide Streamlit footer */
-    footer {
-        visibility: hidden;
-    }
-
-    </style>
+</style>
     """,
     unsafe_allow_html=True
 )
@@ -249,7 +160,7 @@ st.sidebar.title("Navigation")
 
 selected_tab = st.sidebar.radio(
     "",
-    ["Data Analysis", "Regression Visualization", "Predict New Student"]
+    ["Data Analysis", "Visualization", "Marks Prediction"]
 )
 st.title("StudyTrack AI Habbit Recommender")
 st.write("Upload a student dataset -> Clean it -> Train models -> Cluster students -> Predict marks for a new student")
@@ -349,7 +260,7 @@ if selected_tab == "Data Analysis":
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             key="download_clusters",
         )
-elif selected_tab == "Regression Visualization":
+elif selected_tab == "Visualization":
     st.markdown("### Actual vs Predicted Marks")
 
     reg_df = pd.DataFrame({
@@ -383,7 +294,7 @@ elif selected_tab == "Regression Visualization":
     }).head(20)
     st.dataframe(reg_view)
 
-elif selected_tab == "Predict New Student":
+elif selected_tab == "Marks Prediction":
     st.markdown("### Predict Marks & Performance for a New Student")
 
     c1, c2, c3, c4 = st.columns(4)
