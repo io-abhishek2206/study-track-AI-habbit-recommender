@@ -1,178 +1,67 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import matplotlib.pyplot as plt
 
+# ---- Local imports ----
+from auth import auth_page
+from styles import load_styles
 from data_cleaner import clean_and_standardize_excel
 from model import train_regression_model, predict_student_score
 from kmeans_clustering import train_kmeans_clustering, save_clustered_excel
 
-def login_page():
-    st.markdown(
-        """
-        <div style="
-            background:#1e1e1e;
-            padding:30px;
-            border-radius:15px;
-            max-width:400px;
-            margin:auto;
-            box-shadow:0 0 20px #7b2cbf55;
-        ">
-            <h2 style="text-align:center;color:#bb86fc;">StudyTrack AI Login</h2>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
 
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-
-    if st.button("Login"):
-        if username == "admin" and password == "admin123":
-            st.session_state.logged_in = True
-            st.success("Login successful!")
-            st.rerun()
-        else:
-            st.error("Invalid credentials")
-
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-
-if not st.session_state.logged_in:
-    login_page()
-    st.stop()
-
+# ================= PAGE CONFIG (MUST BE FIRST) =================
 st.set_page_config(
     page_title="StudyTrack AI",
     layout="wide",
     page_icon="📚"
 )
 
-st.markdown(
-    """
-    <style>
 
-/* ================= GLOBAL DARK THEME ================= */
+# ================= SESSION STATE =================
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 
-body {
-    background: #0d0d0d;
-    color: #e0e0e0;
-    font-family: 'Segoe UI', sans-serif;
-}
+if "auth_tab" not in st.session_state:
+    st.session_state.auth_tab = "signin"
 
-.block-container {
-    padding-top: 2rem;
-    padding-bottom: 2rem;
-    border-radius: 12px;
-    background-color: rgba(20, 20, 20, 0.85);
-    box-shadow: 0 4px 25px rgba(0,0,0,0.5);
-    backdrop-filter: blur(8px);
-}
 
-h1 {
-    text-align: left;
-    font-weight: 700 !important;
-    font-size: 42px !important;
-    color: #9d4efc !important;
-    text-shadow: 0 0 5px #9d4efc55;
-}
+# ================= AUTH GATE =================
+if not st.session_state.logged_in:
+    auth_page()
+    st.stop()
 
-h2, h3, h4 {
-    color: #bb86fc !important;
-    font-weight: 600 !important;
-}
 
-/* ================= SIDEBAR ================= */
+# ================= LOAD GLOBAL STYLES =================
+load_styles()
 
-section[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #0f0f1a, #090909);
-    padding-top: 0 !important;
-}
 
-section[data-testid="stSidebar"] > div {
-    padding-top: 0 !important;
-}
+# ====================== MAIN APP ======================
 
-/* Sidebar title */
-section[data-testid="stSidebar"] h1 {
-    text-align: left;
-    font-size: 42px !important;
-    color: #9d4efc !important;
-    margin-bottom: 20px;
-}
-
-/* Hide default radio circle completely */
-section[data-testid="stSidebar"] input[type="radio"] {
-    display: none;
-}
-
-/* Radio group container */
-section[data-testid="stSidebar"] .stRadio > div {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-/* === RADIO BOX (FIXED SIZE) === */
-section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label {
-    width: 100%;                 /* 🔒 same width */
-    height: 52px;                /* 🔒 same height */
-    display: flex;               /* flex lock */
-    align-items: center;         /* vertical center */
-    justify-content: flex-start; /* left text */
-    padding: 0 18px;
-    background: #141414;
-    border-radius: 14px;
-    border: 1px solid #262626;
-    box-sizing: border-box;
-    font-size: 15px;
-    font-weight: 600;
-    color: #e0e0e0;
-    cursor: pointer;
-    transition: all 0.25s ease;
-}
-
-/* Hover */
-section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label:hover {
-    background: #1f1f1f;
-    transform: translateX(6px);
-    box-shadow: inset 4px 0 0 #bb86fc;
-}
-
-/* Selected (NO :has — Streamlit-safe) */
-section[data-testid="stSidebar"] 
-.stRadio div[role="radiogroup"] > label[data-checked="true"] {
-    background: linear-gradient(135deg, #7b2cbf, #560bad);
-    color: white !important;
-    box-shadow: 0 0 14px #7b2cbf99;
-}
-
-/* Hide footer */
-footer {
-    visibility: hidden;
-}
-
-</style>
-    """,
-    unsafe_allow_html=True
-)
 st.sidebar.title("Navigation")
 
 selected_tab = st.sidebar.radio(
     "",
     ["Data Analysis", "Visualization", "Marks Prediction"]
 )
+
 st.title("StudyTrack AI Habbit Recommender")
-st.write("Upload a student dataset -> Clean it -> Train models -> Cluster students -> Predict marks for a new student")
+st.write(
+    "Upload a student dataset -> Clean it -> Train models -> "
+    "Cluster students -> Predict marks for a new student"
+)
 
 uploaded_file = st.file_uploader(
     "Upload CSV or Excel file",
     type=["xlsx", "csv"]
 )
+
 if uploaded_file is None:
     st.info("Please upload an Excel or CSV file to get started.")
     st.stop()
 
+
+# ================= STEP 1: CLEAN DATA =================
 st.subheader("Step 1: Clean & Standardize Data")
 
 clean_df, clean_filename, info = clean_and_standardize_excel(
@@ -200,10 +89,12 @@ with open(clean_filename, "rb") as f:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         key="download_clean",
     )
+
+
+# ================= STEP 2: TRAIN MODELS =================
 st.subheader("Step 2: Train Models")
 
 model, mse, r2, X_test, y_test, y_pred = train_regression_model(clean_df)
-
 clustered_df, scaler, kmeans = train_kmeans_clustering(clean_df)
 
 save_clustered_excel(clustered_df, "student_remarks.xlsx")
@@ -215,18 +106,23 @@ with metric_col2:
     st.metric("R2 Score", f"{r2:.3f}")
 
 st.markdown("---")
+
+
+# ================= TAB: DATA ANALYSIS =================
 if selected_tab == "Data Analysis":
     st.markdown("### Clustered Student Data")
 
     show_cols = [
-        "Student_ID", "StudyHours", "WorkHours", "PlayHours",
-        "SleepHour", "Marks", "Cluster_Number", "Remark"
+        "Student_ID", "StudyHours", "WorkHours",
+        "PlayHours", "SleepHour", "Marks",
+        "Cluster_Number", "Remark"
     ]
     existing_cols = [c for c in show_cols if c in clustered_df.columns]
     st.dataframe(clustered_df[existing_cols].head(20))
 
     st.markdown("#### Cluster Distribution")
     cluster_counts = clustered_df["Cluster_Number"].value_counts().sort_index()
+
     fig_bar = px.bar(
         x=cluster_counts.index,
         y=cluster_counts.values,
@@ -235,23 +131,23 @@ if selected_tab == "Data Analysis":
         template="plotly_dark"
     )
     st.plotly_chart(fig_bar, use_container_width=True)
+
     st.markdown("#### Study Hours vs Marks")
     fig_cluster = px.scatter(
-    clustered_df,
-    x="StudyHours",
-    y="Marks",
-    color="Cluster_Number",
-    title="K-Means Clusters: Study Hours vs Marks",
-    color_continuous_scale="Plasma",
-    template="plotly_dark"
-)
+        clustered_df,
+        x="StudyHours",
+        y="Marks",
+        color="Cluster_Number",
+        title="K-Means Clusters: Study Hours vs Marks",
+        color_continuous_scale="Plasma",
+        template="plotly_dark"
+    )
     fig_cluster.update_layout(
         xaxis_title="Study Hours",
         yaxis_title="Marks"
     )
     st.plotly_chart(fig_cluster, use_container_width=True)
 
-    # Download clustered remarks file
     with open("student_remarks.xlsx", "rb") as f:
         st.download_button(
             label="📥 Download Clustered Remarks Excel",
@@ -260,6 +156,9 @@ if selected_tab == "Data Analysis":
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             key="download_clusters",
         )
+
+
+# ================= TAB: VISUALIZATION =================
 elif selected_tab == "Visualization":
     st.markdown("### Actual vs Predicted Marks")
 
@@ -288,24 +187,22 @@ elif selected_tab == "Visualization":
     st.plotly_chart(fig_reg, use_container_width=True)
 
     st.markdown("#### Sample of Test Data with Predictions")
-    reg_view = pd.DataFrame({
-        "Actual Marks": y_test.values,
-        "Predicted Marks": y_pred
-    }).head(20)
-    st.dataframe(reg_view)
+    st.dataframe(reg_df.head(20))
 
+
+# ================= TAB: MARKS PREDICTION =================
 elif selected_tab == "Marks Prediction":
     st.markdown("### Predict Marks & Performance for a New Student")
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        study_h = st.number_input("Study Hours", min_value=0.0, max_value=24.0, value=3.0, step=0.5)
+        study_h = st.number_input("Study Hours", 0.0, 24.0, 3.0, step=0.5)
     with c2:
-        work_h = st.number_input("Work Hours", min_value=0.0, max_value=24.0, value=2.0, step=0.5)
+        work_h = st.number_input("Work Hours", 0.0, 24.0, 2.0, step=0.5)
     with c3:
-        play_h = st.number_input("Play Hours", min_value=0.0, max_value=24.0, value=3.0, step=0.5)
+        play_h = st.number_input("Play Hours", 0.0, 24.0, 3.0, step=0.5)
     with c4:
-        sleep_h = st.number_input("Sleep Hours", min_value=0.0, max_value=24.0, value=8.0, step=0.5)
+        sleep_h = st.number_input("Sleep Hours", 0.0, 24.0, 8.0, step=0.5)
 
     if st.button("Predict"):
         predicted_marks = predict_student_score(
@@ -315,8 +212,9 @@ elif selected_tab == "Marks Prediction":
             play_h,
             sleep_h
         )
-        if(predicted_marks>100):
-            predicted_marks=100
+
+        predicted_marks = min(predicted_marks, 100)
+
         new_student_df = pd.DataFrame({
             "StudyHours": [study_h],
             "WorkHours": [work_h],
@@ -324,8 +222,6 @@ elif selected_tab == "Marks Prediction":
             "SleepHour": [sleep_h],
             "Marks": [predicted_marks]
         })
-
-        from sklearn.preprocessing import StandardScaler
 
         new_scaled = scaler.transform(new_student_df)
         new_cluster = kmeans.predict(new_scaled)[0]
@@ -335,7 +231,6 @@ elif selected_tab == "Marks Prediction":
             1: "Bad Performance! Needs to Improve",
             2: "Great Performance! Keep it Up"
         }
-        new_remark = remarks_map.get(new_cluster, "No Remark")
 
         st.success(f"🎯 Predicted Marks: **{predicted_marks:.2f}**")
-        st.info(f"Cluster: **{new_cluster}** | Remark: **{new_remark}**")
+        st.info(f"Cluster: **{new_cluster}** | Remark: **{remarks_map[new_cluster]}**")
