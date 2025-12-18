@@ -2,41 +2,29 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# ---- Local imports ----
 from auth import auth_page
 from styles import load_styles
 from data_cleaner import clean_and_standardize_excel
 from model import train_regression_model, predict_student_score
 from kmeans_clustering import train_kmeans_clustering, save_clustered_excel
 
-
-# ================= PAGE CONFIG (MUST BE FIRST) =================
 st.set_page_config(
     page_title="StudyTrack AI",
     layout="wide",
     page_icon="📚"
 )
 
-
-# ================= SESSION STATE =================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 if "auth_tab" not in st.session_state:
     st.session_state.auth_tab = "signin"
 
-
-# ================= AUTH GATE =================
 if not st.session_state.logged_in:
     auth_page()
     st.stop()
 
-
-# ================= LOAD GLOBAL STYLES =================
 load_styles()
-
-
-# ====================== MAIN APP ======================
 
 st.sidebar.title("Navigation")
 
@@ -64,8 +52,6 @@ if uploaded_file is None:
     st.info("Please upload an Excel or CSV file to get started.")
     st.stop()
 
-
-# ================= STEP 1: CLEAN DATA =================
 st.subheader("Step 1: Clean & Standardize Data")
 
 clean_df, clean_filename, info = clean_and_standardize_excel(
@@ -94,8 +80,6 @@ with open(clean_filename, "rb") as f:
         key="download_clean",
     )
 
-
-# ================= STEP 2: TRAIN MODELS =================
 st.subheader("Step 2: Train Models")
 
 model, mse, r2, X_test, y_test, y_pred = train_regression_model(clean_df)
@@ -111,8 +95,6 @@ with metric_col2:
 
 st.markdown("---")
 
-
-# ================= TAB: DATA ANALYSIS =================
 if selected_tab == "Data Analysis":
     st.markdown("### Clustered Student Data")
 
@@ -161,8 +143,6 @@ if selected_tab == "Data Analysis":
             key="download_clusters",
         )
 
-
-# ================= TAB: VISUALIZATION =================
 elif selected_tab == "Visualization":
     st.markdown("### Actual vs Predicted Marks")
 
@@ -193,8 +173,6 @@ elif selected_tab == "Visualization":
     st.markdown("#### Sample of Test Data with Predictions")
     st.dataframe(reg_df.head(20))
 
-
-# ================= TAB: MARKS PREDICTION =================
 elif selected_tab == "Marks Prediction":
     st.markdown("### Predict Marks & Performance for a New Student")
 

@@ -67,16 +67,12 @@ def auth_page():
         unsafe_allow_html=True
     )
 
-    if "auth_tab" not in st.session_state:
-        st.session_state.auth_tab = "signin"
-
-    # ---------- WRAPPER ----------
-    st.markdown('<div class="auth-wrapper">', unsafe_allow_html=True)
     subtitle = (
-    "Sign in to continue"
-    if st.session_state.auth_tab == "signin"
-    else "Create your account"
+        "Sign in to continue"
+        if st.session_state.auth_tab == "signin"
+        else "Create your account"
     )
+
     st.markdown(
         f"""
         <div class="auth-wrapper">
@@ -88,46 +84,46 @@ def auth_page():
         """,
         unsafe_allow_html=True
     )
-    # ---------- TOGGLE ----------
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Sign In", use_container_width=True):
-            st.session_state.auth_tab = "signin"
-            st.rerun()
-    with col2:
-        if st.button("Sign Up", use_container_width=True):
-            st.session_state.auth_tab = "signup"
-            st.rerun()
+    left, center, right = st.columns([1, 1, 1])
 
-    st.markdown("<div class='auth-divider'></div>", unsafe_allow_html=True)
+    with center:
+        col1, col2 = st.columns(2)
 
-    # ---------- SIGN IN ----------
-    if st.session_state.auth_tab == "signin":
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-
-        if st.button("Login", use_container_width=True):
-            if username == "admin" and password == "admin123":
-                st.session_state.logged_in = True
-                st.rerun()
-            else:
-                st.error("Invalid username or password")
-
-    # ---------- SIGN UP ----------
-    else:
-        new_user = st.text_input("Username")
-        new_pass = st.text_input("Password", type="password")
-        confirm_pass = st.text_input("Confirm Password", type="password")
-
-        if st.button("Create Account", use_container_width=True):
-            if not new_user or not new_pass:
-                st.error("All fields are required")
-            elif new_pass != confirm_pass:
-                st.error("Passwords do not match")
-            else:
-                st.success("Account created successfully!")
+        with col1:
+            if st.button("Sign In", use_container_width=True):
                 st.session_state.auth_tab = "signin"
                 st.rerun()
 
-    # ---------- END ----------
-    st.markdown("</div></div>", unsafe_allow_html=True)
+        with col2:
+            if st.button("Sign Up", use_container_width=True):
+                st.session_state.auth_tab = "signup"
+                st.rerun()
+
+    left, center, right = st.columns([1, 1, 1])
+
+    with center:
+        if st.session_state.auth_tab == "signin":
+            username = st.text_input("USERNAME")
+            password = st.text_input("PASSWORD", type="password")
+
+            if st.button("LOGIN", use_container_width=True):
+                if username == "admin" and password == "admin123":
+                    st.session_state.logged_in = True
+                    st.rerun()
+                else:
+                    st.error("INVALID username or password")
+
+        else:
+            new_user = st.text_input("USERNAME")
+            new_pass = st.text_input("PASSWORD", type="password")
+            confirm_pass = st.text_input("CONFIRM PASSWORD", type="password")
+
+            if st.button("Create Account", use_container_width=True):
+                if not new_user or not new_pass:
+                    st.error("All fields are required")
+                elif new_pass != confirm_pass:
+                    st.error("Passwords do not match")
+                else:
+                    st.success("Account created successfully!")
+                    st.session_state.auth_tab = "signin"
+                    st.rerun()
