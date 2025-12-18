@@ -1,5 +1,12 @@
 import streamlit as st
+import bcrypt
+from db import get_user
 
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+def check_password(password: str, hashed: str) -> bool:
+    return bcrypt.checkpw(password.encode(), hashed.encode())
 def auth_page():
     st.markdown(
         """
@@ -106,24 +113,32 @@ def auth_page():
             username = st.text_input("USERNAME")
             password = st.text_input("PASSWORD", type="password")
 
-            if st.button("LOGIN", use_container_width=True):
-                if username == "admin" and password == "admin123":
+            if st.button("Login", use_container_width=True):
+                user = get_user(username)
+                if user and check_password(password, user["password_hash"]):
                     st.session_state.logged_in = True
+                    st.session_state.username = user["username"]
                     st.rerun()
                 else:
-                    st.error("INVALID username or password")
+                    st.markdown(
+                        "<p style='color:#ff4b4b; text-align:center;'>Invalid username or password</p>",
+                        unsafe_allow_html=True
+                    )
 
         else:
             new_user = st.text_input("USERNAME")
             new_pass = st.text_input("PASSWORD", type="password")
             confirm_pass = st.text_input("CONFIRM PASSWORD", type="password")
 
+            from db import create_user
+
             if st.button("Create Account", use_container_width=True):
-                if not new_user or not new_pass:
-                    st.error("All fields are required")
-                elif new_pass != confirm_pass:
-                    st.error("Passwords do not match")
-                else:
+                hashed = hash_password(new_pass)
+                success = create_user(new_user, hashed)
+
+                if success:
                     st.success("Account created successfully!")
                     st.session_state.auth_tab = "signin"
                     st.rerun()
+                else:
+                    st.error("Username already exists")
