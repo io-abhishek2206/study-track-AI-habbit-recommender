@@ -44,6 +44,10 @@ selected_tab = st.sidebar.radio(
     "",
     ["Data Analysis", "Visualization", "Marks Prediction"]
 )
+if st.sidebar.button("Logout", use_container_width=False):
+    st.session_state.logged_in = False
+    st.session_state.auth_tab = "signin"
+    st.rerun()
 
 st.title("StudyTrack AI Habbit Recommender")
 st.write(
