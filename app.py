@@ -1,4 +1,5 @@
 import streamlit as st
+import time
 import pandas as pd
 import plotly.express as px
 
@@ -51,6 +52,24 @@ uploaded_file = st.file_uploader(
 if uploaded_file is None:
     st.info("Please upload an Excel or CSV file to get started.")
     st.stop()
+
+progress = st.progress(0)
+status = st.empty()
+
+steps = [
+    "Loading data...",
+    "Cleaning data...",
+    "Training model...",
+    "Clustering...",
+    "Almost done..."
+]
+
+for i, step in enumerate(steps):
+    status.text(step)
+    progress.progress(int((i + 1) / len(steps) * 100))
+    time.sleep(2)
+
+status.text("Done!")
 
 st.subheader("Step 1: Clean & Standardize Data")
 
