@@ -112,8 +112,9 @@ def auth_page():
                 st.rerun()
 
     _, center, _ = st.columns([1, 1, 1])
-
     with center:
+
+        # ===================== SIGN IN =====================
         if st.session_state.auth_tab == "signin":
             username = st.text_input("USERNAME")
             password = st.text_input("PASSWORD", type="password")
@@ -130,13 +131,15 @@ def auth_page():
                         "<p style='color:#ff4b4b; text-align:center;'>Invalid username or password</p>",
                         unsafe_allow_html=True
                     )
+
+        # ===================== SIGN UP =====================
         else:
             email = st.text_input("EMAIL")
             new_user = st.text_input("USERNAME")
             new_pass = st.text_input("PASSWORD", type="password")
             confirm_pass = st.text_input("CONFIRM PASSWORD", type="password")
 
-            # ----- STEP 1: SEND OTP -----
+            # -------- STEP 1: SEND OTP --------
             if not st.session_state.otp_sent:
                 if st.button("Send OTP", use_container_width=True):
 
@@ -161,11 +164,13 @@ def auth_page():
                         }
 
                         st.success("OTP sent to your email")
+                        st.rerun()   # 🔥 THIS IS THE KEY FIX
+
+            # -------- STEP 2: VERIFY OTP --------
             else:
                 entered_otp = st.text_input("ENTER OTP")
 
-                if st.button("Verify OTP & Create Account", use_container_width=True):
-
+                if st.button("Verify OTP", use_container_width=True):
                     data = st.session_state.pending_signup
                     email = data["email"]
                     username = data["username"]

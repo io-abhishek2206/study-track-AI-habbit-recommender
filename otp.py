@@ -44,7 +44,6 @@ def verify_otp(email, entered_otp):
 
     return True
 
-# ---------- SEND OTP EMAIL ----------
 def send_otp_email(to_email, otp):
     msg = EmailMessage()
     msg.set_content(
