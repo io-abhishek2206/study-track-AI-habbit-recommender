@@ -31,90 +31,163 @@ st.sidebar.title("Navigation")
 
 selected_tab = st.sidebar.radio(
     "",
-    ["Data Analysis", "Visualization", "Marks Prediction"]
+    ["Home", "Data Analysis", "Visualization", "Marks Prediction"]
 )
 if st.sidebar.button("Logout", use_container_width=False):
     st.session_state.logged_in = False
     st.session_state.auth_tab = "signin"
     st.rerun()
+if selected_tab == "Home":
 
-st.title("StudyTrack AI Habbit Recommender")
-st.write(
-    "Upload a student dataset -> Clean it -> Train models -> "
-    "Cluster students -> Predict marks for a new student"
-)
-
-uploaded_file = st.file_uploader(
-    "Upload CSV or Excel file",
-    type=["xlsx", "csv"]
-)
-
-if uploaded_file is None:
-    st.info("Please upload an Excel or CSV file to get started.")
-    st.stop()
-
-progress = st.progress(0)
-status = st.empty()
-
-steps = [
-    "Loading data...",
-    "Cleaning data...",
-    "Training model...",
-    "Clustering...",
-    "Almost done..."
-]
-
-for i, step in enumerate(steps):
-    status.text(step)
-    progress.progress(int((i + 1) / len(steps) * 100))
-    time.sleep(2)
-
-status.text("Done!")
-
-st.subheader("Step 1: Clean & Standardize Data")
-
-clean_df, clean_filename, info = clean_and_standardize_excel(
-    uploaded_file,
-    output_filename="clean_student_data.xlsx"
-)
-
-col_a, col_b = st.columns(2)
-with col_a:
-    st.success("Data cleaned successfully!")
-    st.write("**Detected Marks column (original name):**", info["marks_column_original"])
-
-with col_b:
-    st.write("**Detected feature columns (original names):**")
-    st.json(info["feature_columns_original"])
-
-st.markdown("Cleaned Data Preview")
-st.dataframe(clean_df.head())
-
-with open(clean_filename, "rb") as f:
-    st.download_button(
-        label="📥 Download Cleaned Excel",
-        data=f,
-        file_name=clean_filename,
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        key="download_clean",
+    st.markdown(
+        "<div class='section-title'>📚 StudyTrack AI Habit Recommender</div>",
+        unsafe_allow_html=True
     )
 
-st.subheader("Step 2: Train Models")
+    st.markdown(
+        "<div class='subtitle'>Understand how daily habits influence academic performance using Machine Learning.</div>",
+        unsafe_allow_html=True
+    )
 
-model, mse, r2, X_test, y_test, y_pred = train_regression_model(clean_df)
-clustered_df, scaler, kmeans = train_kmeans_clustering(clean_df)
+    st.markdown("<br>", unsafe_allow_html=True)
 
-save_clustered_excel(clustered_df, "student_remarks.xlsx")
+    c1, c2, c3 = st.columns(3)
 
-metric_col1, metric_col2 = st.columns(2)
-with metric_col1:
-    st.metric("Mean Squared Error", f"{mse:.2f}")
-with metric_col2:
-    st.metric("R2 Score", f"{r2:.3f}")
+    with c1:
+        st.markdown(
+            "<div class='glass-card'><h3>📂 Data Input</h3><p class='feature'>CSV & Excel student datasets</p></div>",
+            unsafe_allow_html=True
+        )
 
-st.markdown("---")
+    with c2:
+        st.markdown(
+            "<div class='glass-card'><h3>🧠 Intelligence</h3><p class='feature'>Regression + K-Means Clustering</p></div>",
+            unsafe_allow_html=True
+        )
 
-if selected_tab == "Data Analysis":
+    with c3:
+        st.markdown(
+            "<div class='glass-card'><h3>🎯 Output</h3><p class='feature'>Marks prediction & performance insight</p></div>",
+            unsafe_allow_html=True
+        )
+
+    st.markdown("<br><br>", unsafe_allow_html=True)
+
+    st.markdown(
+        "<div class='section-title'>How it works</div>",
+        unsafe_allow_html=True
+    )
+
+    step = st.radio(
+        "",
+        [
+            "Upload Dataset",
+            "Clean & Standardize",
+            "Train Models",
+            "Cluster Students",
+            "Predict Performance"
+        ],
+        horizontal=True
+    )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    explanations = {
+        "Upload Dataset": "Upload structured student habit data in CSV or Excel format.",
+        "Clean & Standardize": "Automatic preprocessing removes noise and standardizes features.",
+        "Train Models": "Regression learns the relationship between habits and marks.",
+        "Cluster Students": "K-Means groups students based on behavioral patterns.",
+        "Predict Performance": "Predict marks and performance category for a new student."
+    }
+
+    st.markdown(
+        f"<div class='glass-card'><p class='feature'>{explanations[step]}</p></div>",
+        unsafe_allow_html=True
+    )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    st.markdown(
+        "<div class='subtitle'>Use the sidebar to explore analysis, visualizations, and predictions.</div>",
+        unsafe_allow_html=True
+    )
+
+elif selected_tab == "Data Analysis":
+    st.title("StudyTrack AI Habbit Recommender")
+    st.write(
+        "Upload a student dataset -> Clean it -> Train models -> "
+        "Cluster students -> Predict marks for a new student"
+    )
+
+    uploaded_file = st.file_uploader(
+        "Upload CSV or Excel file",
+        type=["xlsx", "csv"]
+    )
+
+    if uploaded_file is None:
+        st.info("Please upload an Excel or CSV file to get started.")
+        st.stop()
+
+    progress = st.progress(0)
+    status = st.empty()
+
+    steps = [
+        "Loading data...",
+        "Cleaning data...",
+        "Training model...",
+        "Clustering...",
+        "Almost done..."
+    ]
+
+    for i, step in enumerate(steps):
+        status.text(step)
+        progress.progress(int((i + 1) / len(steps) * 100))
+        time.sleep(2)
+
+    status.text("Done!")
+
+    st.subheader("Step 1: Clean & Standardize Data")
+
+    clean_df, clean_filename, info = clean_and_standardize_excel(
+        uploaded_file,
+        output_filename="clean_student_data.xlsx"
+    )
+
+    col_a, col_b = st.columns(2)
+    with col_a:
+        st.success("Data cleaned successfully!")
+        st.write("**Detected Marks column (original name):**", info["marks_column_original"])
+
+    with col_b:
+        st.write("**Detected feature columns (original names):**")
+        st.json(info["feature_columns_original"])
+
+    st.markdown("Cleaned Data Preview")
+    st.dataframe(clean_df.head())
+
+    with open(clean_filename, "rb") as f:
+        st.download_button(
+            label="📥 Download Cleaned Excel",
+            data=f,
+            file_name=clean_filename,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key="download_clean",
+        )
+
+    st.subheader("Step 2: Train Models")
+
+    model, mse, r2, X_test, y_test, y_pred = train_regression_model(clean_df)
+    clustered_df, scaler, kmeans = train_kmeans_clustering(clean_df)
+
+    save_clustered_excel(clustered_df, "student_remarks.xlsx")
+
+    metric_col1, metric_col2 = st.columns(2)
+    with metric_col1:
+        st.metric("Mean Squared Error", f"{mse:.2f}")
+    with metric_col2:
+        st.metric("R2 Score", f"{r2:.3f}")
+
+    st.markdown("---")
     st.markdown("### Clustered Student Data")
 
     show_cols = [
@@ -215,7 +288,6 @@ elif selected_tab == "Marks Prediction":
         )
 
         predicted_marks = min(predicted_marks, 100)
-
         new_student_df = pd.DataFrame({
             "StudyHours": [study_h],
             "WorkHours": [work_h],

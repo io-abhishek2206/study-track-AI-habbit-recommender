@@ -67,7 +67,48 @@ def load_styles():
         }
 
         footer { visibility: hidden; }
+        .stApp {
+        background: transparent;
+        }
 
+        /* Remove default padding */
+        .block-container {
+            padding-top: 2rem;
+        }
+
+        /* Card style */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            text-align: center;
+        }
+
+        /* Section title */
+        .section-title {
+            font-size: 26px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        /* Subtitle */
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.85;
+        }
+
+        /* Feature text */
+        .feature {
+            font-size: 15px;
+            opacity: 0.9;
+        }
+
+        /* Align radio buttons nicely */
+        div[role="radiogroup"] > label {
+            margin-right: 18px;
+        }
         </style>
         """,
         unsafe_allow_html=True
