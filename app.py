@@ -4,10 +4,17 @@ import pandas as pd
 import plotly.express as px
 
 from auth import auth_page
+import streamlit.components.v1 as components
 from styles import load_styles
 from data_cleaner import clean_and_standardize_excel
 from model import train_regression_model, predict_student_score
 from kmeans_clustering import train_kmeans_clustering, save_clustered_excel
+
+st.set_page_config(
+    page_title="StudyTrack AI",
+    layout="wide",
+    page_icon="📚"
+)
 
 if "current_page" not in st.session_state:
     st.session_state.current_page = "home"
@@ -28,14 +35,6 @@ if "y_pred" not in st.session_state:
 if "data_processed" not in st.session_state:
     st.session_state.data_processed = False
 
-
-# ---------------- PAGE CONFIG ----------------
-st.set_page_config(
-    page_title="StudyTrack AI",
-    layout="wide",
-    page_icon="📚"
-)
-
 # ---------------- AUTH ----------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -49,50 +48,125 @@ if not st.session_state.logged_in:
 # ---------------- STYLES ----------------
 load_styles()
 
+import textwrap
+
 # ---------------- HOME PAGE ----------------
 if st.session_state.current_page == "home":
 
-    st.markdown(
+    components.html(
         """
-        <div style="
-            text-align:center;
-            padding:60px 20px;
-        ">
-            <h1 style="font-size:48px;">📚 StudyTrack AI</h1>
-            <p style="font-size:20px; max-width:700px; margin:auto; color:#cccccc;">
-                An intelligent student habit recommender that analyzes study patterns,
-                clusters student performance, and predicts marks using Machine Learning.
-            </p>
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: #0f2027;
+        font-family: Segoe UI, sans-serif;
+    }
+
+    .hero {
+        height: 100vh;
+        width: 100vw;
+        background: linear-gradient(120deg, #0f2027, #203a43, #2c5364);
+        background-size: 300% 300%;
+        animation: gradientMove 10s ease infinite;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+    }
+
+    @keyframes gradientMove {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .glass {
+        background: rgba(255,255,255,0.08);
+        backdrop-filter: blur(16px);
+        border-radius: 22px;
+        padding: 45px;
+        width: 85%;
+        max-width: 1100px;
+        box-shadow: 0 30px 70px rgba(0,0,0,0.45);
+    }
+
+    .title {
+        font-size: 56px;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    .subtitle {
+        text-align: center;
+        font-size: 20px;
+        margin: 15px 0 40px;
+        opacity: 0.9;
+    }
+
+    .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 25px;
+    }
+
+    .card {
+        background: rgba(255,255,255,0.15);
+        border-radius: 18px;
+        padding: 25px;
+        text-align: center;
+        transform: perspective(1000px) rotateX(7deg);
+        transition: all 0.4s ease;
+    }
+
+    .card:hover {
+        transform: perspective(1000px) rotateX(0deg) scale(1.06);
+        background: rgba(255,255,255,0.22);
+    }
+
+    .footer {
+        margin-top: 40px;
+        text-align: center;
+        font-size: 14px;
+        opacity: 0.8;
+    }
+    </style>
+    </head>
+
+    <body>
+    <div class="hero">
+        <div class="glass">
+            <div class="title">StudyTracker AI</div>
+            <div class="subtitle">
+                Intelligent habit-based student performance analysis using Machine Learning
+            </div>
+
+            <div class="features">
+                <div class="card">📊 Smart Data Cleaning</div>
+                <div class="card">🤖 ML Predictions</div>
+                <div class="card">🧠 Behavior Clustering</div>
+                <div class="card">🎯 Actionable Insights</div>
+            </div>
+
+            <div class="footer">
+                Made with ❤️ by <b>Abhishek Jain</b>
+            </div>
         </div>
+    </div>
+    </body>
+    </html>
         """,
-        unsafe_allow_html=True
+        height=750,
+        scrolling=False
     )
 
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([3, 2, 3])
     with col2:
-        st.markdown(
-            """
-            <div style="
-                background:rgba(255,255,255,0.05);
-                padding:30px;
-                border-radius:16px;
-                text-align:left;
-            ">
-                <h3>🚀 What this platform does</h3>
-                <ul style="line-height:1.8;">
-                    <li>📊 Cleans & standardizes student datasets</li>
-                    <li>🤖 Trains ML models to predict marks</li>
-                    <li>🧠 Clusters students based on habits</li>
-                    <li>🎯 Gives performance-based insights</li>
-                </ul>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        if st.button("➡️ Go to Dashboard", use_container_width=True):
+        if st.button("🚀 Enter Dashboard", use_container_width=True):
             st.session_state.current_page = "app"
             st.rerun()
 
