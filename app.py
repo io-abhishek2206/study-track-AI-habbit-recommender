@@ -2,7 +2,7 @@ import streamlit as st
 import time
 import pandas as pd
 import plotly.express as px
-
+from gemini_helper import generate_student_feedback
 from auth import auth_page
 import streamlit.components.v1 as components
 from styles import load_styles
@@ -376,3 +376,11 @@ if st.session_state.current_page == "app":
 
             st.success(f"🎯 Predicted Marks: **{marks:.2f}**")
             st.info(f"Cluster: **{cluster}** | {remarks[cluster]}")
+
+            with st.spinner("🧠 Generating personalized feedback..."):
+                feedback = generate_student_feedback(
+                    study, work, play, sleep, round(marks, 2), cluster
+                )
+
+            st.markdown("### 🤖 AI Mentor Feedback")
+            st.markdown(feedback)
