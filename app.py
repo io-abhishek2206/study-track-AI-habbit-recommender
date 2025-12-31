@@ -2,26 +2,29 @@ import streamlit as st
 import time
 import pandas as pd
 import plotly.express as px
+import streamlit.components.v1 as components
+import textwrap
+
+# --- CUSTOM MODULES (Keep your existing files) ---
 from gemini_helper import generate_student_feedback
 from auth import auth_page
-import streamlit.components.v1 as components
 from styles import load_styles
 from data_cleaner import clean_and_standardize_excel
 from model import train_regression_model, predict_student_score
 from kmeans_clustering import train_kmeans_clustering, save_clustered_excel
 
+# ---------------- PAGE CONFIG ----------------
 st.set_page_config(
     page_title="StudyTrack AI",
     layout="wide",
     page_icon="📚"
 )
 
+# ---------------- SESSION STATE INIT ----------------
 if "current_page" not in st.session_state:
     st.session_state.current_page = "home"
-# ---------------- SESSION STATE INIT ----------------
 if "uploaded_file" not in st.session_state:
     st.session_state.uploaded_file = None
-
 if "model" not in st.session_state:
     st.session_state.model = None
 if "scaler" not in st.session_state:
@@ -35,7 +38,7 @@ if "y_pred" not in st.session_state:
 if "data_processed" not in st.session_state:
     st.session_state.data_processed = False
 
-# ---------------- AUTH ----------------
+# ---------------- AUTH CHECK ----------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "auth_tab" not in st.session_state:
@@ -45,143 +48,237 @@ if not st.session_state.logged_in:
     auth_page()
     st.stop()
 
-# ---------------- STYLES ----------------
+# ---------------- GLOBAL STYLES ----------------
 load_styles()
 
-import textwrap
-
-# ---------------- HOME PAGE ----------------
+# ---------------- HOME PAGE (SCI-FI TERMINAL) ----------------
 if st.session_state.current_page == "home":
+    
+    # 1. INJECT CSS TO STYLE THE NATIVE STREAMLIT BUTTON
+    # This makes the standard button look exactly like the Sci-Fi design
+    st.markdown("""
+        <style>
+            /* Target the specific Streamlit button */
+            div.stButton > button {
+                background: transparent;
+                color: #00ff41; /* Hacker Green */
+                font-family: 'Space Mono', monospace;
+                font-size: 1rem;
+                font-weight: bold;
+                padding: 15px 40px;
+                border: 1px solid #00ff41;
+                cursor: pointer;
+                text-transform: uppercase;
+                transition: all 0.3s ease;
+                width: 100%;
+                margin-top: -80px; /* PULLS BUTTON UP INTO THE HTML */
+                position: relative;
+                z-index: 999;
+            }
 
+            /* Hover Effects */
+            div.stButton > button:hover {
+                background: #00ff41;
+                color: #000;
+                box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
+                border-color: #00ff41;
+            }
+            
+            /* Remove default Streamlit button focus outline */
+            div.stButton > button:focus {
+                box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
+                color: #000;
+                background: #00ff41;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # 2. RENDER THE VISUALS (Without the button inside)
     components.html(
         """
-    <!DOCTYPE html>
-    <html>
-    <head>
-    <style>
-    html, body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        background: #0f2027;
-        font-family: Segoe UI, sans-serif;
-    }
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            <style>
+                :root {
+                    --bg-color: #0e1117;
+                    --card-bg: #161b22;
+                    --accent-color: #00ff41;
+                    --secondary-color: #008F11;
+                    --border-color: #30363d;
+                    --text-color: #c9d1d9;
+                }
+                body {
+                    margin: 0; padding: 0;
+                    background-color: var(--bg-color);
+                    color: var(--text-color);
+                    font-family: 'Space Mono', monospace;
+                    overflow-x: hidden;
+                }
+                .grid-bg {
+                    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+                    background-image: linear-gradient(var(--border-color) 1px, transparent 1px), linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
+                    background-size: 40px 40px; opacity: 0.1; z-index: -1;
+                }
+                .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+                
+                /* HEADER */
+                .header-terminal {
+                    border: 1px solid var(--border-color); padding: 20px; margin-bottom: 30px; position: relative; background: rgba(22, 27, 34, 0.8);
+                }
+                .header-terminal::before {
+                    content: "SYSTEM_STATUS: ONLINE"; position: absolute; top: -10px; left: 20px;
+                    background: var(--bg-color); padding: 0 10px; font-size: 0.7rem; color: var(--accent-color); border: 1px solid var(--border-color);
+                }
+                h1 { font-size: 2.5rem; margin: 0; text-transform: uppercase; letter-spacing: -2px; color: #fff; }
+                .blink { animation: blinker 1s linear infinite; }
+                @keyframes blinker { 50% { opacity: 0; } }
+                .subtitle { color: #8b949e; margin-top: 10px; font-size: 0.9rem; }
 
-    .hero {
-        height: 100vh;
-        width: 100vw;
-        background: linear-gradient(120deg, #0f2027, #203a43, #2c5364);
-        background-size: 300% 300%;
-        animation: gradientMove 10s ease infinite;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: white;
-    }
+                /* MODULES */
+                .modules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 40px; }
+                .module-card { border: 1px solid var(--border-color); background: var(--card-bg); padding: 20px; position: relative; transition: all 0.2s; }
+                .module-card:hover { border-color: var(--accent-color); box-shadow: 0 0 15px rgba(0, 255, 65, 0.1); transform: translateY(-2px); }
+                .corner { position: absolute; width: 8px; height: 8px; border: 2px solid var(--accent-color); opacity: 0; transition: opacity 0.2s; }
+                .c-tl { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+                .c-tr { top: -1px; right: -1px; border-left: 0; border-bottom: 0; }
+                .c-bl { bottom: -1px; left: -1px; border-right: 0; border-top: 0; }
+                .c-br { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+                .module-card:hover .corner { opacity: 1; }
+                .mod-icon { font-size: 1.5rem; color: var(--secondary-color); margin-bottom: 15px; }
+                .module-card:hover .mod-icon { color: var(--accent-color); }
+                .mod-title { font-weight: bold; text-transform: uppercase; margin-bottom: 8px; font-size: 0.9rem; color: #fff; }
+                .mod-desc { font-size: 0.75rem; color: #8b949e; line-height: 1.4; }
 
-    @keyframes gradientMove {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
+                /* PIPELINE */
+                .pipeline-section { border-top: 1px dashed var(--border-color); padding-top: 30px; position: relative; padding-bottom: 50px; }
+                .section-label { margin-bottom: 20px; text-transform: uppercase; color: var(--accent-color); font-size: 0.75rem; letter-spacing: 2px; }
+                .pipeline-container { display: flex; align-items: center; justify-content: space-between; position: relative; padding: 20px 0; flex-wrap: wrap; gap: 15px; }
+                .pipeline-line { position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: #30363d; z-index: 0; }
+                .pipeline-pulse { position: absolute; top: 50%; left: 0; width: 100px; height: 2px; background: linear-gradient(90deg, transparent, var(--accent-color), transparent); z-index: 1; transform: translateY(-50%); animation: pulseMove 4s linear infinite; }
+                @keyframes pulseMove { 0% { left: 0%; } 100% { left: 100%; } }
+                .node { position: relative; z-index: 2; background: #0d1117; border: 1px solid var(--border-color); padding: 8px 15px; text-align: center; min-width: 80px; }
+                .node:hover { border-color: var(--accent-color); color: var(--accent-color); }
+                .node-num { font-size: 0.6rem; color: #555; display: block; margin-bottom: 3px; }
+                .node-label { font-size: 0.7rem; font-weight: bold; }
+                
+                .footer { margin-top: 80px; font-size: 0.7rem; color: #484f58; text-align: center; border-top: 1px solid #21262d; padding-top: 15px; }
+            </style>
+        </head>
+        <body>
+            <div class="grid-bg"></div>
+            <div class="container">
+                <div class="header-terminal">
+                    <h1>StudyTrack_AI<span class="blink">_</span></h1>
+                    <div class="subtitle">> HABIT ANALYSIS & PERFORMANCE PREDICTION PROTOCOL</div>
+                    <div class="subtitle">> INFOSYS_SPRINGBOARD_PROJECT_V1.0</div>
+                </div>
 
-    .glass {
-        background: rgba(255,255,255,0.08);
-        backdrop-filter: blur(16px);
-        border-radius: 22px;
-        padding: 45px;
-        width: 85%;
-        max-width: 1100px;
-        box-shadow: 0 30px 70px rgba(0,0,0,0.45);
-    }
+                <div class="section-label">// SYSTEM_MODULES</div>
+                <div class="modules-grid">
+                    <div class="module-card">
+                        <div class="corner c-tl"></div><div class="corner c-tr"></div><div class="corner c-bl"></div><div class="corner c-br"></div>
+                        <div class="mod-icon"><i class="fa-solid fa-database"></i></div>
+                        <div class="mod-title">01. PREPROCESS</div>
+                        <div class="mod-desc">Cleaning raw datasets. Handling nulls. Standardizing inputs.</div>
+                    </div>
+                    <div class="module-card">
+                        <div class="corner c-tl"></div><div class="corner c-tr"></div><div class="corner c-bl"></div><div class="corner c-br"></div>
+                        <div class="mod-icon"><i class="fa-solid fa-calculator"></i></div>
+                        <div class="mod-title">02. REGRESSION</div>
+                        <div class="mod-desc">Linear Regression algorithm loaded. Predicting scores.</div>
+                    </div>
+                    <div class="module-card">
+                        <div class="corner c-tl"></div><div class="corner c-tr"></div><div class="corner c-bl"></div><div class="corner c-br"></div>
+                        <div class="mod-icon"><i class="fa-solid fa-users"></i></div>
+                        <div class="mod-title">03. K-MEANS</div>
+                        <div class="mod-desc">Unsupervised clustering. Categorizing performance profiles.</div>
+                    </div>
+                    <div class="module-card">
+                        <div class="corner c-tl"></div><div class="corner c-tr"></div><div class="corner c-bl"></div><div class="corner c-br"></div>
+                        <div class="mod-icon"><i class="fa-solid fa-terminal"></i></div>
+                        <div class="mod-title">04. DASHBOARD</div>
+                        <div class="mod-desc">Interactive data visualization and inference engine.</div>
+                    </div>
+                </div>
 
-    .title {
-        font-size: 56px;
-        font-weight: 700;
-        text-align: center;
-    }
+                <div class="pipeline-section">
+                    <div class="section-label">// EXECUTION_PIPELINE</div>
+                    <div class="pipeline-container">
+                        <div class="pipeline-line"></div>
+                        <div class="pipeline-pulse"></div>
+                        <div class="node"><span class="node-num">STEP 01</span> <span class="node-label">AUTH</span></div>
+                        <div class="node"><span class="node-num">STEP 02</span> <span class="node-label">UPLOAD</span></div>
+                        <div class="node"><span class="node-num">STEP 03</span> <span class="node-label">PROCESS</span></div>
+                        <div class="node"><span class="node-num">STEP 04</span> <span class="node-label">CLUSTER</span></div>
+                        <div class="node"><span class="node-num">STEP 05</span> <span class="node-label">PREDICT</span></div>
+                    </div>
+                </div>
 
-    .subtitle {
-        text-align: center;
-        font-size: 20px;
-        margin: 15px 0 40px;
-        opacity: 0.9;
-    }
-
-    .features {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 25px;
-    }
-
-    .card {
-        background: rgba(255,255,255,0.15);
-        border-radius: 18px;
-        padding: 25px;
-        text-align: center;
-        transform: perspective(1000px) rotateX(7deg);
-        transition: all 0.4s ease;
-    }
-
-    .card:hover {
-        transform: perspective(1000px) rotateX(0deg) scale(1.06);
-        background: rgba(255,255,255,0.22);
-    }
-
-    .footer {
-        margin-top: 40px;
-        text-align: center;
-        font-size: 14px;
-        opacity: 0.8;
-    }
-    </style>
-    </head>
-
-    <body>
-    <div class="hero">
-        <div class="glass">
-            <div class="title">StudyTracker AI</div>
-            <div class="subtitle">
-                Intelligent habit-based student performance analysis using Machine Learning
+                <div class="footer">
+                    RUNNING ON PORT 8501 | DEVELOPED BY ABHISHEK JAIN
+                </div>
             </div>
-
-            <div class="features">
-                <div class="card">📊 Smart Data Cleaning</div>
-                <div class="card">🤖 ML Predictions</div>
-                <div class="card">🧠 Behavior Clustering</div>
-                <div class="card">🎯 Actionable Insights</div>
-            </div>
-
-            <div class="footer">
-                Made with ❤️ by <b>Abhishek Jain</b>
-            </div>
-        </div>
-    </div>
-    </body>
-    </html>
+        </body>
+        </html>
         """,
-        height=750,
+        height=850, # Set height to fit everything
         scrolling=False
     )
 
-    col1, col2, col3 = st.columns([3, 2, 3])
+    # 3. PLACE THE REAL PYTHON BUTTON (Visually pulled up by CSS)
+    col1, col2, col3 = st.columns([1, 3, 1])
     with col2:
-        if st.button("🚀 Enter Dashboard", use_container_width=True):
+        if st.button("INITIALIZE DASHBOARD >>"):
             st.session_state.current_page = "app"
             st.rerun()
 
     st.stop()
-# ---------------- APP PAGE ----------------
+
+
+# ---------------- APP PAGE (DASHBOARD) ----------------
 if st.session_state.current_page == "app":
 
+    # --- INJECT DASHBOARD SPECIFIC CSS (To match the Sci-Fi Home Theme) ---
+    st.markdown("""
+        <style>
+            /* Force dark theme for dashboard components */
+            .stApp {
+                background-color: #0e1117;
+            }
+            [data-testid="stSidebar"] {
+                background-color: #161b22;
+                border-right: 1px solid #30363d;
+            }
+            .stButton>button {
+                background-color: #1f6feb;
+                color: white;
+                border: none;
+            }
+            .stButton>button:hover {
+                background-color: #388bfd;
+            }
+            h1, h2, h3 {
+                font-family: 'Space Mono', monospace;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
     # ---------------- SIDEBAR ----------------
-    st.sidebar.title("Navigation")
+    st.sidebar.title("Navigation ->")
+    st.sidebar.markdown("---")
 
     selected_tab = st.sidebar.radio(
-        "",
+        "Select MODULE :",
         ["Data Analysis", "Visualization", "Marks Prediction"]
     )
 
+    st.sidebar.markdown("---")
+    
     if st.sidebar.button("Home"):
         st.session_state.current_page = "home"
         st.rerun()
@@ -191,16 +288,16 @@ if st.session_state.current_page == "app":
         st.session_state.auth_tab = "signin"
         st.rerun()
 
-    # ---------------- MAIN ----------------
-    st.title("StudyTrack AI Habit Recommender")
-    st.write(
-        "Upload a student dataset → Clean it → Train models → "
-        "Cluster students → Predict marks"
-    )
+    # ---------------- MAIN DASHBOARD CONTENT ----------------
+    st.title("StudyTrack AI Dashboard")
+    st.markdown("`STATUS: SYSTEM READY`")
+    
+    st.info("Workflow: Upload Dataset → Clean → Train → Cluster → Predict")
+    
 
     # ---------------- FILE UPLOAD ----------------
     uploaded_file = st.file_uploader(
-        "Upload CSV or Excel file",
+        "Upload Student Dataset (CSV/Excel)",
         type=["xlsx", "csv"]
     )
 
@@ -215,7 +312,7 @@ if st.session_state.current_page == "app":
     uploaded_file = st.session_state.uploaded_file
 
     if uploaded_file is None:
-        st.info("Please upload an Excel or CSV file to get started.")
+        st.warning("⚠️ Awaiting Data Input. Please upload a file to proceed.")
         st.stop()
 
     # ---------------- LOADER (RUNS ONLY ONCE) ----------------
@@ -224,51 +321,32 @@ if st.session_state.current_page == "app":
         status = st.empty()
 
         steps = [
-            "Loading data...",
-            "Cleaning data...",
-            "Training model...",
-            "Clustering...",
-            "Almost done..."
+            "Initializing protocols...",
+            "Standardizing data format...",
+            "Training Regression Model...",
+            "Executing K-Means Clustering...",
+            "Finalizing visuals..."
         ]
 
         for i, step in enumerate(steps):
-            status.text(step)
+            status.text(f">  {step}")
             progress.progress(int((i + 1) / len(steps) * 100))
-            time.sleep(1.5)
+            time.sleep(0.5)
 
-        status.text("Done ✅")
+        status.text("> PROCESS COMPLETE ")
+        time.sleep(1)
+        status.empty()
+        progress.empty()
         st.session_state.data_processed = True
 
-    # ---------------- DATA CLEANING ----------------
-    st.subheader("Step 1: Clean & Standardize Data")
-
+    # ---------------- DATA PROCESSING ----------------
+    
     clean_df, clean_filename, info = clean_and_standardize_excel(
         uploaded_file,
         output_filename="clean_student_data.xlsx"
     )
 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.success("Data cleaned successfully!")
-        st.write("**Detected Marks column:**", info["marks_column_original"])
-
-    with col2:
-        st.write("**Detected feature columns:**")
-        st.json(info["feature_columns_original"])
-
-    st.dataframe(clean_df.head())
-
-    with open(clean_filename, "rb") as f:
-        st.download_button(
-            "📥 Download Cleaned Excel",
-            f,
-            clean_filename,
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-
     # ---------------- MODEL TRAINING ----------------
-    st.subheader("Step 2: Train Models")
-
     if st.session_state.model is None:
         model, mse, r2, X_test, y_test, y_pred = train_regression_model(clean_df)
         clustered_df, scaler, kmeans = train_kmeans_clustering(clean_df)
@@ -293,94 +371,103 @@ if st.session_state.current_page == "app":
 
     save_clustered_excel(clustered_df, "student_remarks.xlsx")
 
-    m1, m2 = st.columns(2)
-    m1.metric("Mean Squared Error", f"{mse:.2f}")
-    m2.metric("R² Score", f"{r2:.3f}")
-
-    st.markdown("---")
-    # ---------------- DATA ANALYSIS TAB ----------------
+    # ---------------- TABS IMPLEMENTATION ----------------
+    
     if selected_tab == "Data Analysis":
-        st.subheader("Clustered Student Data")
-
-        st.dataframe(clustered_df.head(20))
-
-        st.subheader("Cluster Distribution")
-        cluster_counts = clustered_df["Cluster_Number"].value_counts().sort_index()
-
-        fig = px.bar(
-            x=cluster_counts.index,
-            y=cluster_counts.values,
-            labels={"x": "Cluster", "y": "Students"},
-            template="plotly_dark"
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-    # ---------------- VISUALIZATION TAB ----------------
-    elif selected_tab == "Visualization":
-        st.subheader("Actual vs Predicted Marks")
-
-        reg_df = pd.DataFrame({
-            "Actual": y_test,
-            "Predicted": y_pred
-        })
-
-        fig = px.scatter(
-            reg_df,
-            x="Actual",
-            y="Predicted",
-            template="plotly_dark"
-        )
-
-        fig.add_shape(
-            type="line",
-            x0=reg_df["Actual"].min(),
-            y0=reg_df["Actual"].min(),
-            x1=reg_df["Actual"].max(),
-            y1=reg_df["Actual"].max(),
-            line=dict(dash="dash")
-        )
-
-        st.plotly_chart(fig, use_container_width=True)
-
-    # ---------------- PREDICTION TAB ----------------
-    elif selected_tab == "Marks Prediction":
-        st.subheader("Predict Marks for a New Student")
-
-        c1, c2, c3, c4 = st.columns(4)
-        study = c1.number_input("Study Hours", 0.0, 24.0, 3.0)
-        work = c2.number_input("Work Hours", 0.0, 24.0, 2.0)
-        play = c3.number_input("Play Hours", 0.0, 24.0, 3.0)
-        sleep = c4.number_input("Sleep Hours", 0.0, 24.0, 8.0)
-
-        if st.button("Predict"):
-            marks = min(
-                predict_student_score(model, study, work, play, sleep),
-                100
+        st.subheader("Data Analysis Module")
+        
+        c1, c2 = st.columns(2)
+        with c1:
+            st.write("**Processed Data Preview:**")
+            st.dataframe(clustered_df.head(10), use_container_width=True)
+        with c2:
+            st.write("**Dataset Metrics:**")
+            st.json({
+                "Total Students": len(clustered_df),
+                "Features Detected": info["feature_columns_original"],
+                "Model MSE": f"{mse:.2f}",
+                "Model R2 Score": f"{r2:.3f}"
+            })
+        
+        with open(clean_filename, "rb") as f:
+            st.download_button(
+                "📥 Download Cleaned Dataset",
+                f,
+                clean_filename,
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
-            df_new = pd.DataFrame({
-                "StudyHours": [study],
-                "WorkHours": [work],
-                "PlayHours": [play],
-                "SleepHour": [sleep],
-                "Marks": [marks]
-            })
+    elif selected_tab == "Visualization":
+        st.subheader("Visualization Module")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("##### Cluster Distribution")
+            cluster_counts = clustered_df["Cluster_Number"].value_counts().sort_index()
+            fig_bar = px.bar(
+                x=cluster_counts.index,
+                y=cluster_counts.values,
+                labels={"x": "Cluster ID", "y": "Count"},
+                color_discrete_sequence=['#00ff41'] # Hacker green
+            )
+            fig_bar.update_layout(template="plotly_dark", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+            st.plotly_chart(fig_bar, use_container_width=True)
+            
+        with col2:
+            st.markdown("##### Regression Accuracy")
+            reg_df = pd.DataFrame({"Actual": y_test, "Predicted": y_pred})
+            fig_scatter = px.scatter(
+                reg_df, x="Actual", y="Predicted",
+                color_discrete_sequence=['#00f2fe'] # Cyan
+            )
+            fig_scatter.add_shape(
+                type="line", x0=reg_df["Actual"].min(), y0=reg_df["Actual"].min(),
+                x1=reg_df["Actual"].max(), y1=reg_df["Actual"].max(),
+                line=dict(dash="dash", color="white")
+            )
+            fig_scatter.update_layout(template="plotly_dark", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+            st.plotly_chart(fig_scatter, use_container_width=True)
 
-            cluster = kmeans.predict(scaler.transform(df_new))[0]
+    elif selected_tab == "Marks Prediction":
+        st.subheader("Prediction & Inference")
+        
+        with st.container(border=True):
+            st.markdown("#### New Student Input")
+            c1, c2, c3, c4 = st.columns(4)
+            study = c1.number_input("Study Hours", 0.0, 24.0, 5.0)
+            work = c2.number_input("Work Hours", 0.0, 24.0, 2.0)
+            play = c3.number_input("Play Hours", 0.0, 24.0, 3.0)
+            sleep = c4.number_input("Sleep Hours", 0.0, 24.0, 7.0)
 
-            remarks = {
-                0: "Ok Performance! Can Improve",
-                1: "Bad Performance! Needs to Improve",
-                2: "Great Performance! Keep it Up"
-            }
+            if st.button("RUN PREDICTION PROTOCOL", type="primary", use_container_width=True):
+                # Predict
+                marks = min(predict_student_score(model, study, work, play, sleep), 100)
+                
+                # Cluster
+                df_new = pd.DataFrame({
+                    "StudyHours": [study], "WorkHours": [work], 
+                    "PlayHours": [play], "SleepHour": [sleep], "Marks": [marks]
+                })
+                cluster = kmeans.predict(scaler.transform(df_new))[0]
 
-            st.success(f"🎯 Predicted Marks: **{marks:.2f}**")
-            st.info(f"Cluster: **{cluster}** | {remarks[cluster]}")
-
-            with st.spinner("🧠 Generating personalized feedback..."):
-                feedback = generate_student_feedback(
-                    study, work, play, sleep, round(marks, 2), cluster
-                )
-
-            st.markdown("### 🤖 AI Mentor Feedback")
-            st.markdown(feedback)
+                remarks = {
+                    0: "Performance: OK (Room for Optimization)",
+                    1: "Performance: CRITICAL (Needs Improvement)",
+                    2: "Performance: EXCELLENT (Maintain Trajectory)"
+                }
+                
+                st.markdown("---")
+                res_col1, res_col2 = st.columns(2)
+                
+                with res_col1:
+                    st.metric(label="Predicted Score", value=f"{marks:.2f}%")
+                with res_col2:
+                    st.metric(label="Cluster Classification", value=f"Group {cluster}", delta=remarks[cluster])
+                
+                # Gemini Feedback
+                with st.spinner("Connecting to Gemini AI for analysis..."):
+                    feedback = generate_student_feedback(study, work, play, sleep, round(marks, 2), cluster)
+                
+                st.markdown("### 🤖 AI Mentor Analysis")
+                st.info(feedback)
