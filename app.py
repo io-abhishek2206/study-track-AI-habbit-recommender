@@ -280,7 +280,7 @@ if st.session_state.current_page == "app":
     """, unsafe_allow_html=True)
 
     # ---------------- SIDEBAR ----------------
-    st.sidebar.title("Navigation ->")
+    st.sidebar.title("Navigation ↓")
     st.sidebar.markdown("---")
 
     selected_tab = st.sidebar.radio(
