@@ -384,21 +384,13 @@ if st.session_state.current_page == "app":
 
     # ---------------- TABS IMPLEMENTATION ----------------
     
+    # ---------------- DATA ANALYSIS TAB ----------------
     if selected_tab == "Data Analysis":
         st.subheader("Data Analysis Module")
         
-        c1, c2 = st.columns(2)
-        with c1:
-            st.write("**Processed Data Preview:**")
-            st.dataframe(clustered_df.head(10), use_container_width=True)
-        with c2:
-            st.write("**Dataset Metrics:**")
-            st.json({
-                "Total Students": len(clustered_df),
-                "Features Detected": info["feature_columns_original"],
-                "Model MSE": f"{mse:.2f}",
-                "Model R2 Score": f"{r2:.3f}"
-            })
+        # --- 1. DATA PREVIEW SECTION ---
+        st.markdown("##### 1. Processed Data Preview")
+        st.dataframe(clustered_df.head(10), use_container_width=True)
         
         with open(clean_filename, "rb") as f:
             st.download_button(
@@ -407,6 +399,64 @@ if st.session_state.current_page == "app":
                 clean_filename,
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
+
+        st.markdown("---")
+
+        # --- 2. MODEL PERFORMANCE METRICS ---
+        st.markdown("##### Model Performance Report")
+        
+        # Calculate extra metrics dynamically
+        from sklearn.metrics import mean_absolute_error
+        import numpy as np
+
+        mae = mean_absolute_error(y_test, y_pred)
+        rmse = np.sqrt(mse)
+        
+        # Custom "Accuracy": Percentage of predictions within ±10 marks of actual
+        # (This gives a human-readable "Accuracy" feel)
+        accuracy_within_10 = np.mean(np.abs(y_test - y_pred) <= 10) * 100
+
+        # Create 4 columns for metrics
+        m1, m2, m3, m4 = st.columns(4)
+        
+        with m1:
+            st.metric(
+                label="R² Score (Accuracy)",
+                value=f"{r2:.1%}",
+                help="100% means perfect prediction. >75% is usually good."
+            )
+        
+        with m2:
+            st.metric(
+                label="Mean Abs Error (MAE)",
+                value=f"{mae:.2f}",
+                delta_color="inverse", # Lower is better
+                help="On average, the prediction is off by this many marks."
+            )
+
+        with m3:
+            st.metric(
+                label="Root Mean Sq Error",
+                value=f"{rmse:.2f}",
+                delta_color="inverse",
+                help="Stricter error metric. Lower is better."
+            )
+            
+        with m4:
+            st.metric(
+                label="Predictions within ±10",
+                value=f"{accuracy_within_10:.1f}%",
+                help="Percentage of students whose predicted marks were within 10 marks of reality."
+            )
+
+        # --- 3. JSON DETAILS ---
+        with st.expander("View Technical Details"):
+            st.json({
+                "Total Students Processed": len(clustered_df),
+                "Features Used": info["feature_columns_original"],
+                "Model Type": "Linear Regression",
+                "Data Split": "80% Train / 20% Test"
+            })
 
     elif selected_tab == "Visualization":
         st.subheader("Visualization Module")
