@@ -55,13 +55,11 @@ load_styles()
 if st.session_state.current_page == "home":
     
     # 1. INJECT CSS TO STYLE THE NATIVE STREAMLIT BUTTON
-    # This makes the standard button look exactly like the Sci-Fi design
     st.markdown("""
         <style>
-            /* Target the specific Streamlit button */
             div.stButton > button {
                 background: transparent;
-                color: #00ff41; /* Hacker Green */
+                color: #00ff41;
                 font-family: 'Space Mono', monospace;
                 font-size: 1rem;
                 font-weight: bold;
@@ -71,12 +69,17 @@ if st.session_state.current_page == "home":
                 text-transform: uppercase;
                 transition: all 0.3s ease;
                 width: 100%;
-                margin-top: -80px; /* PULLS BUTTON UP INTO THE HTML */
+                
+                /* --- THE NO-SCROLL FIX --- */
                 position: relative;
+                display: block;
+                margin: 0 auto;
+                
+                /* Using margin-top instead of top removes the empty space at the bottom */
+                margin-top: -180px; 
                 z-index: 999;
             }
 
-            /* Hover Effects */
             div.stButton > button:hover {
                 background: #00ff41;
                 color: #000;
@@ -84,7 +87,6 @@ if st.session_state.current_page == "home":
                 border-color: #00ff41;
             }
             
-            /* Remove default Streamlit button focus outline */
             div.stButton > button:focus {
                 box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
                 color: #000;
@@ -92,8 +94,6 @@ if st.session_state.current_page == "home":
             }
         </style>
     """, unsafe_allow_html=True)
-
-    # 2. RENDER THE VISUALS (Without the button inside)
     components.html(
         """
         <!DOCTYPE html>
@@ -112,13 +112,24 @@ if st.session_state.current_page == "home":
                     --border-color: #30363d;
                     --text-color: #c9d1d9;
                 }
-                body {
+                
+                /* --- CRITICAL FIX FOR NO SCROLLING --- */
+                html, body {
                     margin: 0; padding: 0;
                     background-color: var(--bg-color);
                     color: var(--text-color);
                     font-family: 'Space Mono', monospace;
-                    overflow-x: hidden;
+                    
+                    /* This completely disables scrollbars inside the component */
+                    overflow: hidden; 
+                    height: 100%;
                 }
+                
+                /* Double insurance to hide scrollbars */
+                ::-webkit-scrollbar {
+                    display: none;
+                }
+
                 .grid-bg {
                     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
                     background-image: linear-gradient(var(--border-color) 1px, transparent 1px), linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
@@ -166,7 +177,7 @@ if st.session_state.current_page == "home":
                 .node-num { font-size: 0.6rem; color: #555; display: block; margin-bottom: 3px; }
                 .node-label { font-size: 0.7rem; font-weight: bold; }
                 
-                .footer { margin-top: 80px; font-size: 0.7rem; color: #484f58; text-align: center; border-top: 1px solid #21262d; padding-top: 15px; }
+                .footer { margin-top: 65px; font-size: 0.7rem; color: #484f58; text-align: center; border-top: 1px solid #21262d; padding-top: 15px; }
             </style>
         </head>
         <body>
@@ -174,8 +185,9 @@ if st.session_state.current_page == "home":
             <div class="container">
                 <div class="header-terminal">
                     <h1>StudyTrack_AI<span class="blink">_</span></h1>
-                    <div class="subtitle">> HABIT ANALYSIS & PERFORMANCE PREDICTION PROTOCOL</div>
-                    <div class="subtitle">> INFOSYS_SPRINGBOARD_PROJECT_V1.0</div>
+                    <div class="subtitle">> HABIT ANALYSIS & PERFORMANCE PREDICTION PROJECT</div>
+                    <div class="subtitle">> DEVELOPED UNDER INFOSYS SPRINGBOARD </div>
+                    <div class="subtitle">> UNDER THE GUIDENCE OF MENTOR ANIL KUMAR </div>
                 </div>
 
                 <div class="section-label">// SYSTEM_MODULES</div>
@@ -226,19 +238,18 @@ if st.session_state.current_page == "home":
         </body>
         </html>
         """,
-        height=850, # Set height to fit everything
+        height=850, 
         scrolling=False
     )
 
-    # 3. PLACE THE REAL PYTHON BUTTON (Visually pulled up by CSS)
-    col1, col2, col3 = st.columns([1, 3, 1])
+    # 3. PLACE THE REAL PYTHON BUTTON
+    col1, col2, col3 = st.columns([5, 2, 5])
     with col2:
         if st.button("INITIALIZE DASHBOARD >>"):
             st.session_state.current_page = "app"
             st.rerun()
 
     st.stop()
-
 
 # ---------------- APP PAGE (DASHBOARD) ----------------
 if st.session_state.current_page == "app":
@@ -408,7 +419,7 @@ if st.session_state.current_page == "app":
             fig_bar = px.bar(
                 x=cluster_counts.index,
                 y=cluster_counts.values,
-                labels={"x": "Cluster ID", "y": "Count"},
+                labels={"x": "Cluster ID Number", "y": "Number of Students"},
                 color_discrete_sequence=['#00ff41'] # Hacker green
             )
             fig_bar.update_layout(template="plotly_dark", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
@@ -416,14 +427,14 @@ if st.session_state.current_page == "app":
             
         with col2:
             st.markdown("##### Regression Accuracy")
-            reg_df = pd.DataFrame({"Actual": y_test, "Predicted": y_pred})
+            reg_df = pd.DataFrame({"Actual Marks": y_test, "Predicted Marks": y_pred})
             fig_scatter = px.scatter(
-                reg_df, x="Actual", y="Predicted",
+                reg_df, x="Actual Marks", y="Predicted Marks",
                 color_discrete_sequence=['#00f2fe'] # Cyan
             )
             fig_scatter.add_shape(
-                type="line", x0=reg_df["Actual"].min(), y0=reg_df["Actual"].min(),
-                x1=reg_df["Actual"].max(), y1=reg_df["Actual"].max(),
+                type="line", x0=reg_df["Actual Marks"].min(), y0=reg_df["Actual Marks"].min(),
+                x1=reg_df["Actual Marks"].max(), y1=reg_df["Actual Marks"].max(),
                 line=dict(dash="dash", color="white")
             )
             fig_scatter.update_layout(template="plotly_dark", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
@@ -435,10 +446,11 @@ if st.session_state.current_page == "app":
         with st.container(border=True):
             st.markdown("#### New Student Input")
             c1, c2, c3, c4 = st.columns(4)
-            study = c1.number_input("Study Hours", 0.0, 24.0, 5.0)
-            work = c2.number_input("Work Hours", 0.0, 24.0, 2.0)
-            play = c3.number_input("Play Hours", 0.0, 24.0, 3.0)
-            sleep = c4.number_input("Sleep Hours", 0.0, 24.0, 7.0)
+            # Added step=1.0 to all inputs to increment by 1
+            study = c1.number_input("Study Hours", 0.0, 24.0, 5.0, step=1.0)
+            work = c2.number_input("Work Hours", 0.0, 24.0, 2.0, step=1.0)
+            play = c3.number_input("Play Hours", 0.0, 24.0, 3.0, step=1.0)
+            sleep = c4.number_input("Sleep Hours", 0.0, 24.0, 7.0, step=1.0)
 
             if st.button("RUN PREDICTION PROTOCOL", type="primary", use_container_width=True):
                 # Predict
