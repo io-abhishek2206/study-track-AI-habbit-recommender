@@ -274,7 +274,7 @@ if st.session_state.current_page == "app":
 
     selected_tab = st.sidebar.radio(
         "Select MODULE :",
-        ["Data Analysis", "Visualization", "Marks Prediction"]
+        ["Data Analysis", "Visualization", "Marks Prediction", "Bulk Prediction"]
     )
 
     st.sidebar.markdown("---")
@@ -471,3 +471,73 @@ if st.session_state.current_page == "app":
                 
                 st.markdown("### 🤖 AI Mentor Analysis")
                 st.info(feedback)
+    elif selected_tab == "Bulk Prediction":
+        st.subheader("Bulk Prediction Module")
+        st.info("Upload a dataset of new students (must contain: StudyHours, WorkHours, PlayHours, SleepHour)")
+
+        bulk_file = st.file_uploader("Upload New Student Data", type=["csv", "xlsx"], key="bulk_upload")
+
+        if bulk_file is not None:
+            # Load Data
+            try:
+                if bulk_file.name.endswith('.csv'):
+                    new_data = pd.read_csv(bulk_file)
+                else:
+                    new_data = pd.read_excel(bulk_file)
+                
+                # Standardize column names (simple cleaning)
+                new_data.columns = [c.strip().replace(" ", "") for c in new_data.columns]
+                
+                # Check for required features
+                required_cols = ["StudyHours", "WorkHours", "PlayHours", "SleepHour"]
+                missing_cols = [col for col in required_cols if col not in new_data.columns]
+
+                if missing_cols:
+                    st.error(f"⚠️ Missing columns: {', '.join(missing_cols)}")
+                    st.stop()
+
+                if st.button("RUN BULK PROCESSING", type="primary"):
+                    with st.spinner("Processing batch predictions..."):
+                        # 1. Prepare Features
+                        X_new = new_data[required_cols]
+
+                        # 2. Predict Marks
+                        new_data["Predicted_Marks"] = model.predict(X_new)
+                        
+                        # Clip marks to 0-100 range
+                        new_data["Predicted_Marks"] = new_data["Predicted_Marks"].clip(0, 100).round(2)
+
+                        # 3. Predict Clusters (Need to add Marks to X for scaler consistency if scaler was fitted on Marks too)
+                        # NOTE: Our scaler/kmeans was trained on features + marks. 
+                        # We use the predicted marks to complete the feature set for clustering.
+                        X_for_clustering = X_new.copy()
+                        X_for_clustering["Marks"] = new_data["Predicted_Marks"]
+                        
+                        # Scale and Cluster
+                        X_scaled = scaler.transform(X_for_clustering)
+                        new_data["Cluster_ID"] = kmeans.predict(X_scaled)
+
+                        # 4. Map Remarks
+                        remarks_map = {
+                            0: "Needs Improvement",
+                            1: "Average / Critical",
+                            2: "Excellent"
+                        }
+                        new_data["Status"] = new_data["Cluster_ID"].map(remarks_map)
+
+                    st.success("Batch Processing Complete")
+                    
+                    # Display Result
+                    st.dataframe(new_data.head(10), use_container_width=True)
+
+                    # Download CSV
+                    csv = new_data.to_csv(index=False).encode('utf-8')
+                    st.download_button(
+                        label="📥 Download Predicted Results",
+                        data=csv,
+                        file_name="bulk_predictions.csv",
+                        mime="text/csv",
+                    )
+
+            except Exception as e:
+                st.error(f"Error processing file: {e}")
