@@ -51,7 +51,7 @@ if not st.session_state.logged_in:
 # ---------------- GLOBAL STYLES ----------------
 load_styles()
 
-# ---------------- HOME PAGE (SCI-FI TERMINAL) ----------------
+# ---------------- HOME PAGE  ----------------
 if st.session_state.current_page == "home":
     
     # 1. INJECT CSS TO STYLE THE NATIVE STREAMLIT BUTTON

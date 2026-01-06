@@ -1,9 +1,7 @@
 import os
 from google import genai
-
-GEMINI_API_KEY = "AIzaSyBR7S5GKsSoBEVTnlc2CQbWVhAOYhWT5_g"
-
-client = genai.Client(api_key=GEMINI_API_KEY)
+print("GEMINI_API_KEY =", os.getenv("GEMINI_API_KEY"))
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 MODEL_NAME = "gemini-3-flash-preview"
 
