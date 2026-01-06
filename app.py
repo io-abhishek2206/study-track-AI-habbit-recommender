@@ -547,10 +547,9 @@ if st.session_state.current_page == "app":
                 else:
                     new_data = pd.read_excel(bulk_file)
                 
-                # Standardize column names (simple cleaning)
+                # Standardize column names
                 new_data.columns = [c.strip().replace(" ", "") for c in new_data.columns]
                 
-                # Check for required features
                 required_cols = ["StudyHours", "WorkHours", "PlayHours", "SleepHour"]
                 missing_cols = [col for col in required_cols if col not in new_data.columns]
 
@@ -565,39 +564,83 @@ if st.session_state.current_page == "app":
 
                         # 2. Predict Marks
                         new_data["Predicted_Marks"] = model.predict(X_new)
-                        
-                        # Clip marks to 0-100 range
                         new_data["Predicted_Marks"] = new_data["Predicted_Marks"].clip(0, 100).round(2)
 
-                        # 3. Predict Clusters (Need to add Marks to X for scaler consistency if scaler was fitted on Marks too)
-                        # NOTE: Our scaler/kmeans was trained on features + marks. 
-                        # We use the predicted marks to complete the feature set for clustering.
+                        # 3. Predict Clusters
                         X_for_clustering = X_new.copy()
                         X_for_clustering["Marks"] = new_data["Predicted_Marks"]
                         
-                        # Scale and Cluster
                         X_scaled = scaler.transform(X_for_clustering)
                         new_data["Cluster_ID"] = kmeans.predict(X_scaled)
 
-                        # 4. Map Remarks
-                        remarks_map = {
-                            0: "Needs Improvement",
-                            1: "Average / Critical",
-                            2: "Excellent"
-                        }
+                        # 4. Map Standard Status (Existing)
+                        remarks_map = {0: "Needs Improvement", 1: "Average / Critical", 2: "Excellent"}
                         new_data["Status"] = new_data["Cluster_ID"].map(remarks_map)
+
+                        def generate_smart_remark(row):
+                            marks = row["Predicted_Marks"]
+                            study = row["StudyHours"]
+                            play = row["PlayHours"]
+                            sleep = row["SleepHour"]
+                            work = row["WorkHours"]
+
+                            # Logic Hierarchy (checked in order)
+                            
+                            # 1. High Performer but Risk of Burnout
+                            if marks >= 85 and sleep < 5:
+                                return "Top performer, but sleep is critically low. Prioritize rest."
+                            
+                            # 2. Top Performer (Healthy)
+                            elif marks >= 85:
+                                return "Outstanding performance! Keep maintaining this balance."
+
+                            # 3. The 'Gamer' (High Play, Low Marks)
+                            elif play > 4 and marks < 60:
+                                return "Distracted by excessive play time. Limit gaming to 1 hour."
+
+                            # 4. The 'Overworked' (High Work, Low Marks)
+                            elif work > 4 and marks < 65:
+                                return "Part-time work is affecting grades. Try to reduce work shifts."
+
+                            # 5. The 'Ineffective Studier' (High Study, Low Marks)
+                            elif study > 7 and marks < 60:
+                                return "Studying hard but scores are low. Focus on study *quality* over quantity."
+
+                            # 6. The 'Sleep Deprived' (Low Sleep, Average Marks)
+                            elif sleep < 4:
+                                return "Severe sleep deprivation detected. Cognitive decline likely."
+
+                            # 7. The 'Oversleeper' (Too much sleep, Low Marks)
+                            elif sleep > 9 and marks < 60:
+                                return "Too much sleep/lethargy. Create a more active morning routine."
+
+                            # 8. Critical Failure (Very Low Marks)
+                            elif marks < 35:
+                                return "Critical Alert: Immediate intervention required. Fail risk high."
+
+                            # 9. Bare Minimum (Low Study)
+                            elif study < 2:
+                                return "Study hours are too low. Increase to at least 3-4 hours daily."
+
+                            # 10. Average / Coasting
+                            else:
+                                return "Performance is average. Push study time up by 1 hour to reach excellence."
+
+                        # Apply the function row by row
+                        new_data["Suggestion"] = new_data.apply(generate_smart_remark, axis=1)
+                        # ---------------------------------------------------------
 
                     st.success("Batch Processing Complete")
                     
                     # Display Result
-                    st.dataframe(new_data.head(10), use_container_width=True)
+                    st.dataframe(new_data, use_container_width=True)
 
                     # Download CSV
                     csv = new_data.to_csv(index=False).encode('utf-8')
                     st.download_button(
-                        label="📥 Download Predicted Results",
+                        label="📥 Download Detailed Report",
                         data=csv,
-                        file_name="bulk_predictions.csv",
+                        file_name="student_predictions_detailed.csv",
                         mime="text/csv",
                     )
 
