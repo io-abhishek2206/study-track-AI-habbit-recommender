@@ -1,40 +1,33 @@
-import mysql.connector
+import sqlite3
+
+DB_NAME = "studytrack_ai.db"
 
 def get_connection():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="admin123",
-        database="studytrack_ai"
-    )
+    return sqlite3.connect(DB_NAME, check_same_thread=False)
+
+def init_db():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            username TEXT PRIMARY KEY,
+            password_hash TEXT NOT NULL
+        )
+    """)
+    conn.commit()
+    conn.close()
 
 def create_user(username, password_hash):
     conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "INSERT INTO users (username, password_hash) VALUES (%s, %s)",
+            "INSERT INTO users (username, password_hash) VALUES (?, ?)",
             (username, password_hash)
         )
         conn.commit()
         return True
-    except:
-        return False
-    finally:
-        cursor.close()
-        conn.close()
-
-def create_user(username, password_hash):
-    conn = get_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            "INSERT INTO users (username, password_hash) VALUES (%s, %s)",
-            (username, password_hash)
-        )
-        conn.commit()
-        return True
-    except:
+    except sqlite3.IntegrityError:
         return False
     finally:
         cursor.close()
@@ -42,12 +35,18 @@ def create_user(username, password_hash):
 
 def get_user(username):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     cursor.execute(
-        "SELECT * FROM users WHERE username = %s",
+        "SELECT username, password_hash FROM users WHERE username = ?",
         (username,)
     )
-    user = cursor.fetchone()
+    row = cursor.fetchone()
     cursor.close()
     conn.close()
-    return user
+
+    if row:
+        return {
+            "username": row[0],
+            "password_hash": row[1]
+        }
+    return None

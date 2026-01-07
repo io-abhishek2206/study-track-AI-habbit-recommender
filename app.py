@@ -4,6 +4,9 @@ import pandas as pd
 import plotly.express as px
 import streamlit.components.v1 as components
 import textwrap
+from db import init_db
+
+init_db()
 
 # --- CUSTOM MODULES (Keep your existing files) ---
 from gemini_helper import generate_student_feedback
