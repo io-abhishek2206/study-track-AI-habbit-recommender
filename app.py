@@ -5,8 +5,9 @@ import plotly.express as px
 import streamlit.components.v1 as components
 import textwrap
 from db import init_db
-
+from otp import init_otp_table
 init_db()
+init_otp_table()
 
 # --- CUSTOM MODULES (Keep your existing files) ---
 from gemini_helper import generate_student_feedback
