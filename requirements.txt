@@ -6,3 +6,4 @@ plotly
 google-genai
 bcrypt
 mysql-connector-python
+matplotlib
