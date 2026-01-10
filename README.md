@@ -1,4 +1,4 @@
-# StudyTrack AI – Student Performance Prediction & Dashboard
+# StudyTrack AI based Student Study Habit Recommender
 
 StudyTrack AI is an intelligent, data-driven system designed to analyze students’ study habits and predict academic performance using machine learning techniques. The project integrates data preprocessing, predictive modeling, clustering, and an interactive dashboard to deliver actionable insights and personalized recommendations for students.
 
